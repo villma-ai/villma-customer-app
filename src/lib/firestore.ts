@@ -126,7 +126,7 @@ export async function getUserProfileByEmail(email: string): Promise<UserProfile 
 // Update user subscription settings
 export async function updateUserSubscription(
   subscriptionId: string,
-  updates: Partial<Pick<UserSubscription, 'webshopUrl' | 'apiToken' | 'status' | 'endDate' | 'updatedAt'>>
+  updates: Partial<Pick<UserSubscription, 'webshopUrl' | 'apiToken' | 'status' | 'endDate' | 'updatedAt' | 'ecommerceType' | 'apiBaseUrl' | 'apiKey' | 'shopDomain' | 'adminApiToken' | 'storeUrl' | 'consumerKey' | 'consumerSecret'>>
 ) {
   const subscriptionRef = doc(db, 'userSubscriptions', subscriptionId);
   await updateDoc(subscriptionRef, {

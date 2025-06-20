@@ -40,6 +40,14 @@ export interface UserSubscription {
   apiToken?: string;
   stripeSubscriptionId?: string;
   stripeCustomerId?: string;
+  ecommerceType?: 'custom' | 'shopify' | 'woocommerce' | 'prestashop';
+  apiBaseUrl?: string;
+  apiKey?: string;
+  shopDomain?: string;
+  adminApiToken?: string;
+  storeUrl?: string;
+  consumerKey?: string;
+  consumerSecret?: string;
   createdAt: Date;
   updatedAt: Date;
 } 
