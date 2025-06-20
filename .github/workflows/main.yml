@@ -1,0 +1,261 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - feature/*
+      - hotfix/*
+      - release/*
+  pull_request:
+    branches:
+      - main
+      - develop
+      - feature/*
+      - hotfix/*
+
+env:
+  GOOGLE_REGION: us-central1
+  TF_VERSION: "1.12.2"
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    env:
+      GCR_HOSTNAME: us-central1-docker.pkg.dev
+      IMAGE_NAME: villma/villma-customer-app
+      GOOGLE_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
+      GOOGLE_PROJECT: villma-dev
+    environment: dev
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      base_version: ${{ steps.version.outputs.base_version }}
+      branch_name: ${{ steps.version.outputs.branch_name }}
+      commit_hash: ${{ steps.version.outputs.commit_hash }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Calculate version
+      id: version
+      run: |
+        # Get base version from package.json
+        BASE_VERSION=$(node -p "require('./package.json').version")
+        
+        # Get branch name and commit hash
+        BRANCH_NAME=${GITHUB_REF#refs/heads/}
+        COMMIT_HASH=$(git rev-parse --short HEAD)
+        
+        # Calculate version based on branch
+        if [ "$BRANCH_NAME" = "main" ]; then
+          # For main branch: base version + build number (GitHub run number)
+          VERSION="${BASE_VERSION}-${GITHUB_RUN_NUMBER}"
+        else
+          # For other branches: branch name + short commit hash
+          # Sanitize branch name to be Docker tag compatible (only lowercase letters, numbers, hyphens, underscores)
+          SANITIZED_BRANCH=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9_-]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//')
+          VERSION="${SANITIZED_BRANCH}-${COMMIT_HASH}"
+        fi
+        
+        # Ensure version is Docker tag compatible (max 128 chars, only lowercase letters, numbers, hyphens, underscores, periods)
+        VERSION=$(echo "$VERSION" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-128)
+        
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "base_version=$BASE_VERSION" >> $GITHUB_OUTPUT
+        echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+        echo "commit_hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
+        echo "Calculated version: $VERSION"
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ env.GOOGLE_CREDENTIALS }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+      with:
+        project_id: ${{ env.GOOGLE_PROJECT }}
+
+    - name: Configure Docker to use GCP credentials
+      run: gcloud auth configure-docker ${{ env.GCR_HOSTNAME }}
+
+    - name: Build Docker image
+      run: |
+        docker build -t ${{ env.GCR_HOSTNAME }}/${{ env.GOOGLE_PROJECT }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }} .
+        docker build -t ${{ env.GCR_HOSTNAME }}/${{ env.GOOGLE_PROJECT }}/${{ env.IMAGE_NAME }}:latest .
+
+    - name: Push Docker image
+      run: |
+        docker push ${{ env.GCR_HOSTNAME }}/${{ env.GOOGLE_PROJECT }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
+        docker push ${{ env.GCR_HOSTNAME }}/${{ env.GOOGLE_PROJECT }}/${{ env.IMAGE_NAME }}:latest
+
+    - name: Print image details to job summary
+      run: |
+        echo "## 🐳 Docker Image Details" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Version:** \`${{ steps.version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "**Base Version:** \`${{ steps.version.outputs.base_version }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "**Branch:** \`${{ steps.version.outputs.branch_name }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "**Commit:** \`${{ steps.version.outputs.commit_hash }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Full Image Name:**" >> $GITHUB_STEP_SUMMARY
+        echo "\`${{ env.GCR_HOSTNAME }}/${{ env.GOOGLE_PROJECT }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Latest Tag:**" >> $GITHUB_STEP_SUMMARY
+        echo "\`${{ env.GCR_HOSTNAME }}/${{ env.GOOGLE_PROJECT }}/${{ env.IMAGE_NAME }}:latest\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Project ID:** \`${{ env.GOOGLE_PROJECT }}\`" >> $GITHUB_STEP_SUMMARY
+
+  deploy-dev:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    env:
+      GOOGLE_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
+      GOOGLE_PROJECT: villma-dev
+    environment: dev
+    needs: build-and-push
+    outputs:
+      version: ${{ needs.build-and-push.outputs.version }}
+    steps:
+    - name: Debug - Print version
+      run: |
+        echo "🔍 DEBUG: Version from build-and-push job"
+        echo "Version: ${{ needs.build-and-push.outputs.version }}"
+        echo "Base Version: ${{ needs.build-and-push.outputs.base_version }}"
+        echo "Branch: ${{ needs.build-and-push.outputs.branch_name }}"
+        echo "Commit: ${{ needs.build-and-push.outputs.commit_hash }}"
+        echo ""
+    
+        if [ "${{ needs.build-and-push.outputs.version }}" = "null" ]; then
+          echo "🚨 ERROR: Version is null"
+          exit 1
+        fi
+
+    - name: Checkout Terraform repository
+      uses: actions/checkout@v4
+      with:
+        repository: villma-ai/villma-terraform
+        token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        path: terraform
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+  
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ env.GOOGLE_CREDENTIALS }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+      with:
+        project_id: ${{ env.GOOGLE_PROJECT }}
+
+    - name: Terraform Init
+      working-directory: terraform
+      run: terraform init -backend-config=environments/dev/backend.conf
+
+    - name: Terraform Plan
+      working-directory: terraform
+      run: |
+        terraform plan \
+          -var-file=environments/dev/terraform.tfvars \
+          -target=module.customer_app.google_cloud_run_service.customer_app \
+          -out=tfplan
+      env:
+        TF_VAR_customer_app_version: ${{ needs.build-and-push.outputs.version }}
+
+    - name: Upload Plan Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: tfplan-dev
+        path: terraform/tfplan
+        retention-days: 1
+
+    - name: Set Plan Complete
+      id: plan-complete
+      run: echo "value=true" >> $GITHUB_OUTPUT
+
+    - name: Terraform Apply
+      working-directory: terraform
+      run: terraform apply -var-file=environments/dev/terraform.tfvars -target=module.customer_app.google_cloud_run_service.customer_app -auto-approve
+      env:
+        TF_VAR_customer_app_version: ${{ needs.build-and-push.outputs.version }}
+
+  deploy-prd:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    env:
+      GOOGLE_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
+      GOOGLE_PROJECT: villma-prd
+    environment: prd
+    needs: [build-and-push, deploy-dev]
+    steps:
+      - name: Debug - Print version
+        run: |
+          echo "🔍 DEBUG: Version from build-and-push job"
+          echo "Version: ${{ needs.build-and-push.outputs.version }}"
+          echo "Base Version: ${{ needs.build-and-push.outputs.base_version }}"
+          echo "Branch: ${{ needs.build-and-push.outputs.branch_name }}"
+          echo "Commit: ${{ needs.build-and-push.outputs.commit_hash }}"
+          echo ""
+
+      - name: Checkout Terraform repository
+        uses: actions/checkout@v4
+        with:
+          repository: villma-ai/villma-terraform
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          path: terraform
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ env.GOOGLE_CREDENTIALS }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.GOOGLE_PROJECT }}
+
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init -backend-config=environments/prd/backend.conf
+
+      - name: Terraform Plan
+        working-directory: terraform
+        run: |
+          terraform plan \
+            -var-file=environments/prd/terraform.tfvars \
+            -target=module.customer_app.google_cloud_run_service.customer_app \
+            -out=tfplan
+        env:
+          TF_VAR_customer_app_version: ${{ needs.build-and-push.outputs.version }}
+
+      - name: Upload Plan Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-prd
+          path: terraform/tfplan
+          retention-days: 1
+
+      - name: Set Plan Complete
+        id: plan-complete
+        run: echo "value=true" >> $GITHUB_OUTPUT
+
+      - name: Terraform Apply
+        working-directory: terraform
+        run: terraform apply -var-file=environments/prd/terraform.tfvars -target=module.customer_app.google_cloud_run_service.customer_app -auto-approve
+        env:
+          TF_VAR_customer_app_version: ${{ needs.build-and-push.outputs.version }}

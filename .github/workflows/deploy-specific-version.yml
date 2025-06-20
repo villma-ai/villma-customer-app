@@ -1,0 +1,98 @@
+name: Deploy Specific Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_version:
+        description: 'Specific version to deploy (commit SHA)'
+        required: true
+        type: string
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - prd
+
+env:
+  GOOGLE_REGION: us-central1
+  TF_VERSION: "1.12.2"
+
+jobs:
+  deploy-specific-version:
+    runs-on: ubuntu-latest
+    env:
+      GOOGLE_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
+      GOOGLE_PROJECT: villma-dev
+    environment: ${{ github.event.inputs.environment }}
+    steps:
+    - name: Clone Terraform repository
+      run: |
+        git clone git@github.com:villma-ai/villma-terraform.git terraform-repo
+        cd terraform-repo
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+  
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ env.GOOGLE_CREDENTIALS }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+      with:
+        project_id: ${{ env.GOOGLE_PROJECT }}
+
+    - name: Verify Docker image exists
+      run: |
+        gcloud container images describe us-central1-docker.pkg.dev/${{ env.GOOGLE_PROJECT }}/villma/villma-customer-app:${{ github.event.inputs.deploy_version }} || {
+          echo "❌ Docker image with tag ${{ github.event.inputs.deploy_version }} does not exist!"
+          echo "Available tags:"
+          gcloud container images list-tags us-central1-docker.pkg.dev/${{ env.GOOGLE_PROJECT }}/villma/villma-customer-app --limit=10
+          exit 1
+        }
+        echo "✅ Docker image with tag ${{ github.event.inputs.deploy_version }} found"
+
+    - name: Terraform Init
+      run: terraform init -backend-config=environments/${{ github.event.inputs.environment }}/backend.conf
+
+    - name: Terraform Format Check
+      run: terraform fmt -check -recursive
+
+    - name: Terraform Validate
+      run: terraform validate
+
+    - name: Terraform Plan
+      run: |
+        terraform plan \
+          -var-file=environments/${{ github.event.inputs.environment }}/terraform.tfvars \
+          -target=module.customer_app.google_cloud_run_service.customer_app \
+          -out=tfplan
+      env:
+        TF_VAR_app_version: ${{ github.event.inputs.deploy_version }}
+
+    - name: Upload Plan Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: tfplan-${{ github.event.inputs.environment }}
+        path: tfplan
+        retention-days: 1
+
+    - name: Terraform Apply
+      run: terraform apply -target=module.customer_app.google_cloud_run_service.customer_app -auto-approve
+      env:
+        TF_VAR_app_version: ${{ github.event.inputs.deploy_version }}
+
+    - name: Print deployment summary
+      run: |
+        echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Version Deployed:** \`${{ github.event.inputs.deploy_version }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "**Docker Image:** \`us-central1-docker.pkg.dev/${{ env.GOOGLE_PROJECT }}/villma/villma-website:${{ github.event.inputs.deploy_version }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "**Deployment Time:** $(date -u)" >> $GITHUB_STEP_SUMMARY
