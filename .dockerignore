@@ -1,6 +1,6 @@
 # Dependencies
 node_modules
-npm-debug.log*
+npm-debug.log
 yarn-debug.log*
 yarn-error.log*
 
@@ -101,4 +101,9 @@ temp/
 .yarn/unplugged
 .yarn/build-state.yml
 .yarn/install-state.gz
-.pnp.* 
+.pnp.*
+
+# Additional files to exclude
+README.md
+.vercel
+temp.txt 

@@ -12,8 +12,10 @@ const nextConfig: NextConfig = {
     // They will be read at runtime instead
   },
   
-  // Disable static generation for pages that need runtime config
-  output: 'standalone',
+  // Disable image optimization for Docker containers
+  images: {
+    unoptimized: true,
+  },
   
   // External packages for server components
   serverExternalPackages: [],
