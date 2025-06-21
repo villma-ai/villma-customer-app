@@ -31,9 +31,19 @@ function convertTimestamps(data: Record<string, unknown>): Record<string, unknow
   return converted;
 }
 
+// Helper function to get Firestore instance
+function getFirestoreInstance() {
+  const dbInstance = db();
+  if (!dbInstance) {
+    throw new Error('Firebase is not properly configured. Please check your environment variables.');
+  }
+  return dbInstance;
+}
+
 // User Profile Functions
 export async function createUserProfile(profile: Omit<UserProfile, 'createdAt' | 'updatedAt'>) {
-  const userRef = doc(db, 'users', profile.uid);
+  const dbInstance = getFirestoreInstance();
+  const userRef = doc(dbInstance, 'users', profile.uid);
   const now = new Date();
 
   await setDoc(userRef, {
@@ -44,7 +54,8 @@ export async function createUserProfile(profile: Omit<UserProfile, 'createdAt' |
 }
 
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
-  const userRef = doc(db, 'users', uid);
+  const dbInstance = getFirestoreInstance();
+  const userRef = doc(dbInstance, 'users', uid);
   const userSnap = await getDoc(userRef);
 
   if (userSnap.exists()) {
@@ -55,7 +66,8 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
 }
 
 export async function updateUserProfile(uid: string, updates: Partial<UserProfile>) {
-  const userRef = doc(db, 'users', uid);
+  const dbInstance = getFirestoreInstance();
+  const userRef = doc(dbInstance, 'users', uid);
   await updateDoc(userRef, {
     ...updates,
     updatedAt: new Date()
@@ -64,7 +76,8 @@ export async function updateUserProfile(uid: string, updates: Partial<UserProfil
 
 // Subscription Plan Functions
 export async function getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
-  const plansRef = collection(db, 'subscriptionPlans');
+  const dbInstance = getFirestoreInstance();
+  const plansRef = collection(dbInstance, 'subscriptionPlans');
   const plansSnap = await getDocs(plansRef);
 
   return plansSnap.docs.map(doc => ({
@@ -74,7 +87,8 @@ export async function getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
 }
 
 export async function createUserSubscription(subscription: Omit<UserSubscription, 'id' | 'createdAt' | 'updatedAt'>) {
-  const subscriptionRef = collection(db, 'userSubscriptions');
+  const dbInstance = getFirestoreInstance();
+  const subscriptionRef = collection(dbInstance, 'userSubscriptions');
   const now = new Date();
 
   const docRef = await addDoc(subscriptionRef, {
@@ -87,7 +101,8 @@ export async function createUserSubscription(subscription: Omit<UserSubscription
 }
 
 export async function getUserSubscriptions(userId: string): Promise<UserSubscription[]> {
-  const subscriptionsRef = collection(db, 'userSubscriptions');
+  const dbInstance = getFirestoreInstance();
+  const subscriptionsRef = collection(dbInstance, 'userSubscriptions');
   const q = query(subscriptionsRef, where('userId', '==', userId));
   const subscriptionsSnap = await getDocs(q);
 
@@ -99,7 +114,8 @@ export async function getUserSubscriptions(userId: string): Promise<UserSubscrip
 
 // Get user subscriptions by Stripe customer ID
 export async function getUserSubscriptionsByStripeCustomer(stripeCustomerId: string): Promise<UserSubscription[]> {
-  const subscriptionsRef = collection(db, 'userSubscriptions');
+  const dbInstance = getFirestoreInstance();
+  const subscriptionsRef = collection(dbInstance, 'userSubscriptions');
   const q = query(subscriptionsRef, where('stripeCustomerId', '==', stripeCustomerId));
   const subscriptionsSnap = await getDocs(q);
 
@@ -111,7 +127,8 @@ export async function getUserSubscriptionsByStripeCustomer(stripeCustomerId: str
 
 // Get user profile by email
 export async function getUserProfileByEmail(email: string): Promise<UserProfile | null> {
-  const usersRef = collection(db, 'users');
+  const dbInstance = getFirestoreInstance();
+  const usersRef = collection(dbInstance, 'users');
   const q = query(usersRef, where('email', '==', email));
   const userSnap = await getDocs(q);
 
@@ -128,7 +145,8 @@ export async function updateUserSubscription(
   subscriptionId: string,
   updates: Partial<Pick<UserSubscription, 'webshopUrl' | 'apiToken' | 'status' | 'endDate' | 'updatedAt' | 'ecommerceType' | 'apiBaseUrl' | 'apiKey' | 'shopDomain' | 'adminApiToken' | 'storeUrl' | 'consumerKey' | 'consumerSecret'>>
 ) {
-  const subscriptionRef = doc(db, 'userSubscriptions', subscriptionId);
+  const dbInstance = getFirestoreInstance();
+  const subscriptionRef = doc(dbInstance, 'userSubscriptions', subscriptionId);
   await updateDoc(subscriptionRef, {
     ...updates,
     updatedAt: new Date()
@@ -147,16 +165,18 @@ export function generateApiToken(): string {
 
 // Webhook event tracking to prevent duplicates
 export async function isWebhookEventProcessed(eventId: string): Promise<boolean> {
-  const eventsRef = collection(db, 'webhookEvents');
+  const dbInstance = getFirestoreInstance();
+  const eventsRef = collection(dbInstance, 'webhookEvents');
   const q = query(eventsRef, where('eventId', '==', eventId));
   const eventSnap = await getDocs(q);
   return !eventSnap.empty;
 }
 
 export async function markWebhookEventProcessed(eventId: string): Promise<void> {
-  const eventsRef = collection(db, 'webhookEvents');
+  const dbInstance = getFirestoreInstance();
+  const eventsRef = collection(dbInstance, 'webhookEvents');
   await addDoc(eventsRef, {
     eventId,
     processedAt: new Date(),
   });
-} 
+}

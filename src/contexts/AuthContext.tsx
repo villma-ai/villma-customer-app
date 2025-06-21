@@ -34,19 +34,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   function signup(email: string, password: string) {
-    return createUserWithEmailAndPassword(auth, email, password);
+    const authInstance = auth();
+    if (!authInstance) {
+      throw new Error('Firebase is not properly configured. Please check your environment variables.');
+    }
+    return createUserWithEmailAndPassword(authInstance, email, password);
   }
 
   function login(email: string, password: string) {
-    return signInWithEmailAndPassword(auth, email, password);
+    const authInstance = auth();
+    if (!authInstance) {
+      throw new Error('Firebase is not properly configured. Please check your environment variables.');
+    }
+    return signInWithEmailAndPassword(authInstance, email, password);
   }
 
   function logout() {
-    return signOut(auth);
+    const authInstance = auth();
+    if (!authInstance) {
+      throw new Error('Firebase is not properly configured. Please check your environment variables.');
+    }
+    return signOut(authInstance);
   }
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const authInstance = auth();
+    if (!authInstance) {
+      console.warn('Firebase is not properly configured. Auth state monitoring disabled.');
+      setLoading(false);
+      return;
+    }
+
+    const unsubscribe = onAuthStateChanged(authInstance, (user) => {
       setCurrentUser(user);
       setLoading(false);
     });
