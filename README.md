@@ -197,7 +197,83 @@ src/
 
 ### Environment Variables
 
-No environment variables are required as Firebase credentials are configured directly in the code. For production, consider moving these to environment variables.
+The app now uses **runtime environment variables** instead of build-time variables. This means all environment variables are read when the application starts, not when it's built.
+
+#### Required Environment Variables
+
+**Firebase Configuration (Client-side):**
+```bash
+NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789
+NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abcdef
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX  # Optional
+```
+
+**Stripe Configuration:**
+```bash
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...  # Client-side
+STRIPE_SECRET_KEY=sk_test_...                   # Server-side
+STRIPE_WEBHOOK_SECRET=whsec_...                 # Server-side
+```
+
+**Stripe Product/Price IDs (Server-side):**
+```bash
+STRIPE_BASE_MONTHLY_PRICE_ID=price_...
+STRIPE_BASE_YEARLY_PRICE_ID=price_...
+STRIPE_EXTRA_MONTHLY_PRICE_ID=price_...
+STRIPE_EXTRA_YEARLY_PRICE_ID=price_...
+```
+
+#### Setup Instructions
+
+1. **Local Development**: Create a `.env.local` file in the root directory
+2. **Docker**: Provide environment variables at runtime (see Docker section below)
+3. Get Firebase credentials from your Firebase project settings
+4. Get Stripe credentials from your Stripe dashboard
+5. Create products and prices in Stripe and use their IDs
+
+#### Docker Usage
+
+The Docker image is built without any environment variables embedded. You must provide them at runtime:
+
+```bash
+# Build the image
+docker build -t villma-customer-app .
+
+# Run with environment variables
+docker run -p 3000:3000 \
+  -e NEXT_PUBLIC_FIREBASE_API_KEY=your_key \
+  -e NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_domain \
+  -e NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project \
+  -e NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_bucket \
+  -e NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789 \
+  -e NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abcdef \
+  -e NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_... \
+  -e STRIPE_SECRET_KEY=sk_test_... \
+  -e STRIPE_WEBHOOK_SECRET=whsec_... \
+  -e STRIPE_BASE_MONTHLY_PRICE_ID=price_... \
+  -e STRIPE_BASE_YEARLY_PRICE_ID=price_... \
+  -e STRIPE_EXTRA_MONTHLY_PRICE_ID=price_... \
+  -e STRIPE_EXTRA_YEARLY_PRICE_ID=price_... \
+  villma-customer-app
+```
+
+Or use an environment file:
+```bash
+# Create .env file with all variables
+docker run -p 3000:3000 --env-file .env villma-customer-app
+```
+
+#### Validation
+
+The app will automatically validate all environment variables at startup:
+- **Development**: Missing variables will prevent the app from starting
+- **Production**: Missing variables will log errors but allow the app to continue (with reduced functionality)
+
+You'll see clear error messages in the console if any required variables are missing or empty.
 
 ## Deployment
 

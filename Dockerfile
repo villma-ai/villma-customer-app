@@ -13,16 +13,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
-
-# Add Firebase environment variables for build time
-# These can be overridden at runtime
-ENV NEXT_PUBLIC_FIREBASE_API_KEY="dummy-api-key"
-ENV NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="dummy-project.firebaseapp.com"
-ENV NEXT_PUBLIC_FIREBASE_PROJECT_ID="dummy-project"
-ENV NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="dummy-project.appspot.com"
-ENV NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="123456789"
-ENV NEXT_PUBLIC_FIREBASE_APP_ID="1:123456789:web:abcdef"
-ENV NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID="G-XXXXXXXXXX"
+ENV NODE_ENV=production
 
 RUN npm run build
 
@@ -40,8 +31,10 @@ COPY --from=builder /app/public ./public
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
 
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Copy the built application
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
 USER nextjs
 
@@ -50,4 +43,4 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["node", "server.js"]
+CMD ["npm", "start"]
