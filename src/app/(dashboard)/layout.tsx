@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { getUserProfile } from '@/lib/firestore';
-import { UserProfile } from '@/types/user';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { UserProfile } from '@villma/villma-ts-shared';
 
 export default function DashboardLayout({
   children

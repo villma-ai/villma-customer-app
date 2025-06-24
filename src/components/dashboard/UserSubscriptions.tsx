@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { getUserSubscriptions } from '@/lib/firestore';
-import { UserSubscription } from '@/types/user';
 import SubscriptionSettingsPanel from '@/components/ui/SubscriptionSettingsPanel';
+import { UserSubscription } from '@villma/villma-ts-shared';
 
 interface UserSubscriptionsProps {
   userId: string;

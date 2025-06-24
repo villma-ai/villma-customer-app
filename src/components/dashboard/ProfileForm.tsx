@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { updateUserProfile } from '@/lib/firestore';
-import { UserProfile } from '@/types/user';
 import { z } from 'zod';
+import { UserProfile } from '@villma/villma-ts-shared';
 
 interface ProfileFormProps {
   userProfile: UserProfile | null;

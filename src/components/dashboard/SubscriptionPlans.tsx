@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { getSubscriptionPlans } from '@/lib/firestore';
 import { createCheckoutSession } from '@/lib/stripe-client';
-import { SubscriptionPlan } from '@/types/user';
 import { useAuth } from '@/contexts/AuthContext';
+import { SubscriptionPlan } from '@villma/villma-ts-shared';
 
 interface SubscriptionPlansProps {
   userId: string;

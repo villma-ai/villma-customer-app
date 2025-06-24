@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { getUserProfile } from '@/lib/firestore';
-import { UserProfile } from '@/types/user';
 import ProfileForm from '@/components/dashboard/ProfileForm';
+import { UserProfile } from '@villma/villma-ts-shared';
 
 export default function ProfilePage() {
   const { currentUser } = useAuth();

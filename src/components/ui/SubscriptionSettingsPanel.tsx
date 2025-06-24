@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { UserSubscription } from '@/types/user';
 import { updateUserSubscription, generateApiToken } from '@/lib/firestore';
+import { UserSubscription } from '@villma/villma-ts-shared';
 
 const ECOMMERCE_TYPES = [
   { value: 'custom', label: 'Custom' },
