@@ -1,24 +1,82 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
+import { getAuth, Auth } from 'firebase/auth';
+import { getFirestore, Firestore } from 'firebase/firestore';
+import { getRuntimeConfig } from './runtime-config';
 
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+// Lazy initialization of Firebase
+let app: FirebaseApp | null = null;
+let authInstance: Auth | null = null;
+let dbInstance: Firestore | null = null;
+
+function initializeFirebase() {
+  try {
+    if (app) return { app, auth: authInstance, db: dbInstance };
+
+    // Get runtime configuration
+    const config = getRuntimeConfig();
+
+    // Check if we have valid Firebase configuration
+    if (!config.firebase.apiKey || config.firebase.apiKey === 'dummy_firebase_api_key') {
+      console.warn('⚠️  Firebase not properly configured. Skipping initialization.');
+      return { app: null, auth: null, db: null };
+    }
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: config.firebase.apiKey,
+      authDomain: config.firebase.authDomain,
+      projectId: config.firebase.projectId,
+      storageBucket: config.firebase.storageBucket,
+      messagingSenderId: config.firebase.messagingSenderId,
+      appId: config.firebase.appId,
+      measurementId: config.firebase.measurementId,
+    };
+
+    // Initialize Firebase only if not already initialized
+    if (!getApps().length) {
+      app = initializeApp(firebaseConfig);
+    } else {
+      app = getApps()[0];
+    }
+
+    // Initialize Firebase services
+    authInstance = getAuth(app);
+    dbInstance = getFirestore(app);
+
+    return { app, auth: authInstance, db: dbInstance };
+  } catch (error) {
+    console.error('Error initializing Firebase:', error);
+    return { app: null, auth: null, db: null };
+  }
+}
+
+// Export lazy-loaded instances
+export const auth = (): Auth | null => {
+  try {
+    const { auth } = initializeFirebase();
+    return auth;
+  } catch (error) {
+    console.error('Error getting auth instance:', error);
+    return null;
+  }
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+export const db = (): Firestore | null => {
+  try {
+    const { db } = initializeFirebase();
+    return db;
+  } catch (error) {
+    console.error('Error getting db instance:', error);
+    return null;
+  }
+};
 
-// Initialize Firebase Authentication and get a reference to the service
-export const auth = getAuth(app);
-
-// Initialize Cloud Firestore and get a reference to the service
-export const db = getFirestore(app);
-
-export default app; 
+export default (): FirebaseApp | null => {
+  try {
+    const { app } = initializeFirebase();
+    return app;
+  } catch (error) {
+    console.error('Error getting app instance:', error);
+    return null;
+  }
+};

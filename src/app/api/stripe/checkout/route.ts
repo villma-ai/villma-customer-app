@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createCheckoutSession, getStripePriceId } from '@/lib/stripe';
+import { createCheckoutSession, getStripePriceId, stripe } from '@/lib/stripe';
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if Stripe is properly configured
+    if (!stripe) {
+      return NextResponse.json(
+        { error: 'Stripe is not properly configured. Please check your environment variables.' },
+        { status: 500 }
+      );
+    }
+
     const { planName, billingCycle, customerEmail } = await request.json();
 
     console.log('Creating checkout session with:', { planName, billingCycle, customerEmail });

@@ -1,9 +1,11 @@
 import { loadStripe } from '@stripe/stripe-js';
+import { getRuntimeConfig } from './runtime-config';
 
-// Load Stripe on the client side
-export const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
-);
+// Get runtime configuration
+const config = getRuntimeConfig();
+
+// Initialize Stripe on the client side
+export const stripePromise = loadStripe(config.stripe.publishableKey);
 
 // Function to redirect to Stripe checkout
 export async function redirectToCheckout(sessionId: string) {

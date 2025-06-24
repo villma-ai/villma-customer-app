@@ -4,6 +4,14 @@ import { createUserSubscription, updateUserSubscription, getUserSubscriptionsByS
 import Stripe from 'stripe';
 
 export async function POST(request: NextRequest) {
+  // Check if Stripe is properly configured
+  if (!stripe) {
+    return NextResponse.json(
+      { error: 'Stripe is not properly configured. Please check your environment variables.' },
+      { status: 500 }
+    );
+  }
+
   const body = await request.text();
   const signature = request.headers.get('stripe-signature');
 
@@ -74,6 +82,11 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
   console.log('Checkout session completed:', session.id);
   console.log('Session data:', JSON.stringify(session, null, 2));
 
+  if (!stripe) {
+    console.error('Stripe is not properly configured');
+    return;
+  }
+
   try {
     // Get the subscription from the session
     if (session.subscription && typeof session.subscription === 'string') {
@@ -92,6 +105,11 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
 async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   console.log('Subscription created:', subscription.id);
   console.log('Subscription data:', JSON.stringify(subscription, null, 2));
+
+  if (!stripe) {
+    console.error('Stripe is not properly configured');
+    return;
+  }
 
   try {
     // Get metadata from the subscription
