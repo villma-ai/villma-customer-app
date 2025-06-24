@@ -14,7 +14,7 @@ interface RuntimeConfig {
     appId: string;
     measurementId?: string;
   };
-  
+
   // Stripe Configuration
   stripe: {
     publishableKey: string;
