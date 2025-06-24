@@ -24,7 +24,6 @@
 .DS_Store
 *.pem
 *.log
-/apphosting.yaml
 
 # debug
 npm-debug.log*
