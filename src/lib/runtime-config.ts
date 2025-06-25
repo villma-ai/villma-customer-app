@@ -42,7 +42,7 @@ export function getRuntimeConfig(): RuntimeConfig {
       measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || ''
     },
     stripe: {
-      publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '',
+      publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
       secretKey: process.env.STRIPE_SECRET_KEY || '',
       webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
       products: {

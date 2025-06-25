@@ -214,7 +214,7 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX  # Optional
 
 **Stripe Configuration:**
 ```bash
-STRIPE_PUBLISHABLE_KEY=pk_test_...  # Client-side
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...  # Client-side
 STRIPE_SECRET_KEY=sk_test_...                   # Server-side
 STRIPE_WEBHOOK_SECRET=whsec_...                 # Server-side
 ```
@@ -251,7 +251,7 @@ docker run -p 3000:3000 \
   -e NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_bucket \
   -e NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789 \
   -e NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abcdef \
-  -e STRIPE_PUBLISHABLE_KEY=pk_test_... \
+  -e NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_... \
   -e STRIPE_SECRET_KEY=sk_test_... \
   -e STRIPE_WEBHOOK_SECRET=whsec_... \
   -e STRIPE_BASE_MONTHLY_PRICE_ID=price_... \

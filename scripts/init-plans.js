@@ -1,7 +1,16 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, getDocs, deleteDoc } from 'firebase/firestore';
 
-const firebaseConfig = {
+const firebaseConfigDev = {
+  apiKey: "AIzaSyCcZZRPoJA8DNWsfKgLtuBoNGQQmqrdr6c",
+  authDomain: "villma-customer-app-dev.firebaseapp.com",
+  projectId: "villma-customer-app-dev",
+  storageBucket: "villma-customer-app-dev.firebasestorage.app",
+  messagingSenderId: "352374336325",
+  appId: "1:352374336325:web:5e49ec32e95488f3226c2c"
+};
+
+const firebaseConfigProd = {
   apiKey: "AIzaSyDnkQrKHkiyJ7RezQZ5lLI2EY-QEbJQ1gw",
   authDomain: "villma-customer-app.firebaseapp.com",
   projectId: "villma-customer-app",
@@ -10,6 +19,10 @@ const firebaseConfig = {
   appId: "1:853788598210:web:40d249bc1eb7852442405b",
   measurementId: "G-HNYLH1VM8R"
 };
+
+const env = process.argv[2];
+
+const firebaseConfig = env && env.toLowerCase() === 'prod' ? firebaseConfigProd : firebaseConfigDev;
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);

@@ -51,7 +51,7 @@ const requiredEnvVars: EnvVar[] = [
 
   // Stripe Configuration
   {
-    name: 'STRIPE_PUBLISHABLE_KEY',
+    name: 'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
     required: true,
     description: 'Stripe publishable key for client-side payments'
   },
@@ -147,7 +147,7 @@ export function validateEnvironmentVariables(): void {
     console.error('NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX');
     console.error('');
     console.error('# Stripe Configuration');
-    console.error('STRIPE_PUBLISHABLE_KEY=pk_test_...');
+    console.error('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...');
     console.error('STRIPE_SECRET_KEY=sk_test_...');
     console.error('STRIPE_WEBHOOK_SECRET=whsec_...');
     console.error('');
