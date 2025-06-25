@@ -1,6 +1,5 @@
 {
   "apphosting": {
-    "backendId": "villma-customer-app",
     "rootDir": "/",
     "ignore": [
       "node_modules",
