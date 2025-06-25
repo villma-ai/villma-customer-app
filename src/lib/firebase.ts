@@ -1,7 +1,7 @@
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
-import { getRuntimeConfig } from './runtime-config';
+import { getClientConfig } from './runtime-config';
 
 // Lazy initialization of Firebase
 let app: FirebaseApp | null = null;
@@ -13,11 +13,12 @@ function initializeFirebase() {
     if (app) return { app, auth: authInstance, db: dbInstance };
 
     // Get runtime configuration
-    const config = getRuntimeConfig();
+    const config = getClientConfig();
 
     // Check if we have valid Firebase configuration
-    if (!config.firebase.apiKey || config.firebase.apiKey === 'dummy_firebase_api_key') {
+    if (!config.firebase.apiKey) {
       console.warn('⚠️  Firebase not properly configured. Skipping initialization.');
+
       return { app: null, auth: null, db: null };
     }
 
@@ -71,7 +72,7 @@ export const db = (): Firestore | null => {
   }
 };
 
-export default (): FirebaseApp | null => {
+const getFirebaseApp = (): FirebaseApp | null => {
   try {
     const { app } = initializeFirebase();
     return app;
@@ -80,3 +81,5 @@ export default (): FirebaseApp | null => {
     return null;
   }
 };
+
+export default getFirebaseApp;
