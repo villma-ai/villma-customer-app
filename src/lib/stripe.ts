@@ -14,9 +14,9 @@ function isStripeConfigured(): boolean {
 }
 
 // Initialize Stripe only if properly configured
-export const stripe = isStripeConfigured() 
+export const stripe = isStripeConfigured()
   ? new Stripe(config.stripe.secretKey, {
-      apiVersion: '2025-05-28.basil',
+      apiVersion: '2025-05-28.basil'
     })
   : null;
 
@@ -24,7 +24,7 @@ export const stripe = isStripeConfigured()
 export const STRIPE_CONFIG = {
   publishableKey: config.stripe.publishableKey,
   secretKey: config.stripe.secretKey,
-  webhookSecret: config.stripe.webhookSecret,
+  webhookSecret: config.stripe.webhookSecret
 };
 
 // Product and price IDs for your subscription plans
@@ -32,12 +32,13 @@ export const STRIPE_PRODUCTS = {
   BASE_MONTHLY: config.stripe.products.baseMonthly,
   BASE_YEARLY: config.stripe.products.baseYearly,
   EXTRA_MONTHLY: config.stripe.products.extraMonthly,
-  EXTRA_YEARLY: config.stripe.products.extraYearly,
+  EXTRA_YEARLY: config.stripe.products.extraYearly
 };
 
 // Helper function to get Stripe price ID based on plan
 export function getStripePriceId(planName: string, billingCycle: string): string {
-  const key = `${planName.toUpperCase()}_${billingCycle.toUpperCase()}` as keyof typeof STRIPE_PRODUCTS;
+  const key =
+    `${planName.toUpperCase()}_${billingCycle.toUpperCase()}` as keyof typeof STRIPE_PRODUCTS;
   return STRIPE_PRODUCTS[key];
 }
 
@@ -65,18 +66,18 @@ export async function createCheckoutSession({
     line_items: [
       {
         price: priceId,
-        quantity: 1,
-      },
+        quantity: 1
+      }
     ],
     customer_email: customerEmail,
     success_url: successUrl,
     cancel_url: cancelUrl,
     metadata,
     subscription_data: {
-      metadata,
+      metadata
     },
     allow_promotion_codes: true,
-    billing_address_collection: 'required',
+    billing_address_collection: 'required'
   });
 
   return session;
@@ -90,8 +91,8 @@ export async function createCustomerPortalSession(customerId: string, returnUrl:
 
   const session = await stripe.billingPortal.sessions.create({
     customer: customerId,
-    return_url: returnUrl,
+    return_url: returnUrl
   });
 
   return session;
-} 
+}

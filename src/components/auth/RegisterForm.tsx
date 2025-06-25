@@ -73,10 +73,7 @@ export default function RegisterForm() {
       // Validate form data with Zod
       const validatedData = registerSchema.parse(formData);
 
-      const userCredential = await signup(
-        validatedData.email,
-        validatedData.password
-      );
+      const userCredential = await signup(validatedData.email, validatedData.password);
 
       // Create user profile
       await createUserProfile({
@@ -129,12 +126,8 @@ export default function RegisterForm() {
               className="h-12 w-auto"
             />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Create Account
-          </h1>
-          <p className="text-gray-600">
-            Join Villma and start managing your subscriptions
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
+          <p className="text-gray-600">Join Villma and start managing your subscriptions</p>
         </div>
 
         {/* Register Form */}
@@ -148,10 +141,7 @@ export default function RegisterForm() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label
-                  htmlFor="firstName"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
+                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
                   First Name
                 </label>
                 <input
@@ -167,16 +157,11 @@ export default function RegisterForm() {
                   placeholder="First name"
                 />
                 {errors.firstName && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {errors.firstName}
-                  </p>
+                  <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
                 )}
               </div>
               <div>
-                <label
-                  htmlFor="lastName"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
+                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
                   Last Name
                 </label>
                 <input
@@ -191,17 +176,12 @@ export default function RegisterForm() {
                   }`}
                   placeholder="Last name"
                 />
-                {errors.lastName && (
-                  <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
-                )}
+                {errors.lastName && <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>}
               </div>
             </div>
 
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Email Address
               </label>
               <input
@@ -216,16 +196,11 @@ export default function RegisterForm() {
                 }`}
                 placeholder="Enter your email"
               />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-              )}
+              {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
             </div>
 
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Password
               </label>
               <input
@@ -240,9 +215,7 @@ export default function RegisterForm() {
                 }`}
                 placeholder="Create a password"
               />
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-              )}
+              {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
             </div>
 
             <div>
@@ -265,9 +238,7 @@ export default function RegisterForm() {
                 placeholder="Confirm your password"
               />
               {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.confirmPassword}
-                </p>
+                <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
               )}
             </div>
 

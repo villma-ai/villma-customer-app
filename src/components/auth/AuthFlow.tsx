@@ -45,9 +45,7 @@ export default function AuthFlow() {
             <br />
             Villma Customer Area
           </h2>
-          <p className="text-gray-600">
-            Sign in to your account or create a new one
-          </p>
+          <p className="text-gray-600">Sign in to your account or create a new one</p>
         </div>
 
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-8">

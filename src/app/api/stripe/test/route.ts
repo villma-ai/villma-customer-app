@@ -15,7 +15,7 @@ export async function GET() {
       startDate: new Date(),
       endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
       stripeSubscriptionId: 'test-stripe-sub-id',
-      stripeCustomerId: 'test-customer-id',
+      stripeCustomerId: 'test-customer-id'
     };
 
     const subscriptionId = await createUserSubscription(testSubscription);
@@ -27,9 +27,12 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Test subscription creation error:', error);
-    return NextResponse.json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
   }
-} 
+}

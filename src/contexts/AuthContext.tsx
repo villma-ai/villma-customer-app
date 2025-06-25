@@ -36,7 +36,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   function signup(email: string, password: string) {
     const authInstance = auth();
     if (!authInstance) {
-      throw new Error('Firebase is not properly configured. Please check your environment variables.');
+      throw new Error(
+        'Firebase is not properly configured. Please check your environment variables.'
+      );
     }
     return createUserWithEmailAndPassword(authInstance, email, password);
   }
@@ -44,7 +46,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   function login(email: string, password: string) {
     const authInstance = auth();
     if (!authInstance) {
-      throw new Error('Firebase is not properly configured. Please check your environment variables.');
+      throw new Error(
+        'Firebase is not properly configured. Please check your environment variables.'
+      );
     }
     return signInWithEmailAndPassword(authInstance, email, password);
   }
@@ -52,7 +56,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   function logout() {
     const authInstance = auth();
     if (!authInstance) {
-      throw new Error('Firebase is not properly configured. Please check your environment variables.');
+      throw new Error(
+        'Firebase is not properly configured. Please check your environment variables.'
+      );
     }
     return signOut(authInstance);
   }
@@ -81,9 +87,5 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {!loading && children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
 }

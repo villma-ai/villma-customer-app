@@ -49,9 +49,9 @@ export function getRuntimeConfig(): RuntimeConfig {
         baseMonthly: process.env.STRIPE_BASE_MONTHLY_PRICE_ID || '',
         baseYearly: process.env.STRIPE_BASE_YEARLY_PRICE_ID || '',
         extraMonthly: process.env.STRIPE_EXTRA_MONTHLY_PRICE_ID || '',
-        extraYearly: process.env.STRIPE_EXTRA_YEARLY_PRICE_ID || '',
-      },
-    },
+        extraYearly: process.env.STRIPE_EXTRA_YEARLY_PRICE_ID || ''
+      }
+    }
   };
 }
 
@@ -61,12 +61,12 @@ export function getClientConfig() {
   return {
     firebase: config.firebase,
     stripe: {
-      publishableKey: config.stripe.publishableKey,
-    },
+      publishableKey: config.stripe.publishableKey
+    }
   };
 }
 
 // Server-side configuration (includes secrets)
 export function getServerConfig() {
   return getRuntimeConfig();
-} 
+}

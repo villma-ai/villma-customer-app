@@ -24,7 +24,7 @@ A modern Next.js customer area application with Firebase integration for user au
 
 ## Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 - Firebase project with Authentication and Firestore enabled
 
@@ -55,6 +55,7 @@ npm run init-plans
 ```
 
 This will create 4 subscription plans:
+
 - **BASE Plan (Monthly)** - €90/month
   - Intelligent scan of your store
   - Chatbot agent connected to Villma Server
@@ -153,6 +154,7 @@ src/
 ## Features in Detail
 
 ### Authentication Flow
+
 - Users can register with email/password
 - User profiles are automatically created in Firestore
 - Login/logout functionality with persistent sessions
@@ -160,12 +162,14 @@ src/
 - Automatic redirect to login for unauthenticated users
 
 ### Profile Management
+
 - Personal information (name, phone)
 - Company information (company name, VAT number)
 - Billing address management
 - Real-time updates with success/error feedback
 
 ### Subscription System
+
 - Browse available plans with pricing and features
 - Monthly/Yearly billing cycle selection with tab interface
 - Purchase subscriptions (creates subscription and invoice records)
@@ -173,6 +177,7 @@ src/
 - Billing history with payment status
 
 ### Chatbot Integration Setup
+
 - **Webshop URL Configuration**: Set the URL where the chatbot will be installed
 - **API Token Management**: Generate secure random tokens for chatbot authentication
 - **Settings Dialog**: Easy-to-use interface for managing integration settings
@@ -180,6 +185,7 @@ src/
 - **URL Validation**: Ensures valid URLs are entered
 
 ### Route Groups Architecture
+
 - **Auth Group (`(auth)`)**: Simple layout for login/register pages
 - **Dashboard Group (`(dashboard)`)**: Full layout with header, navigation, and auth checks
 - **Clean Separation**: No conditional rendering, proper Next.js patterns
@@ -202,6 +208,7 @@ The app now uses **runtime environment variables** instead of build-time variabl
 #### Required Environment Variables
 
 **Firebase Configuration (Client-side):**
+
 ```bash
 NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
@@ -213,6 +220,7 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX  # Optional
 ```
 
 **Stripe Configuration:**
+
 ```bash
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...  # Client-side
 STRIPE_SECRET_KEY=sk_test_...                   # Server-side
@@ -220,6 +228,7 @@ STRIPE_WEBHOOK_SECRET=whsec_...                 # Server-side
 ```
 
 **Stripe Product/Price IDs (Server-side):**
+
 ```bash
 STRIPE_BASE_MONTHLY_PRICE_ID=price_...
 STRIPE_BASE_YEARLY_PRICE_ID=price_...
@@ -262,6 +271,7 @@ docker run -p 3000:3000 \
 ```
 
 Or use an environment file:
+
 ```bash
 # Create .env file with all variables
 docker run -p 3000:3000 --env-file .env villma-customer-app
@@ -270,10 +280,28 @@ docker run -p 3000:3000 --env-file .env villma-customer-app
 #### Validation
 
 The app will automatically validate all environment variables at startup:
+
 - **Development**: Missing variables will prevent the app from starting
 - **Production**: Missing variables will log errors but allow the app to continue (with reduced functionality)
 
 You'll see clear error messages in the console if any required variables are missing or empty.
+
+## Stripe Webhook Local Development
+
+When developing locally and testing Stripe webhooks, you need to expose your local server to the internet so Stripe can send webhook events to your app. This is typically done using [ngrok](https://ngrok.com/).
+
+**Steps:**
+
+1. Start your local development server (e.g., `npm run dev`).
+2. In a new terminal, run:
+   ```sh
+   ngrok http 3000
+   ```
+   (Replace `3000` with your local server port if different.)
+3. Copy the HTTPS URL provided by ngrok (e.g., `https://abcd1234.ngrok.io`).
+4. Go to the Stripe Dashboard, navigate to **Developers > Webhooks**, and update or add a webhook endpoint using your ngrok URL, e.g., `https://abcd1234.ngrok.io/api/stripe/webhook`.
+
+> **Note:** This is only required for local development. In production, your deployed server will have a public URL that Stripe can reach.
 
 ## Deployment
 

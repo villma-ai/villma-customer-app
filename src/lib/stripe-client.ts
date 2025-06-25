@@ -16,7 +16,7 @@ export async function redirectToCheckout(sessionId: string) {
   }
 
   const { error } = await stripe.redirectToCheckout({
-    sessionId,
+    sessionId
   });
 
   if (error) {
@@ -28,7 +28,7 @@ export async function redirectToCheckout(sessionId: string) {
 export async function createCheckoutSession({
   planName,
   billingCycle,
-  customerEmail,
+  customerEmail
 }: {
   planName: string;
   billingCycle: string;
@@ -38,13 +38,13 @@ export async function createCheckoutSession({
     const response = await fetch('/api/stripe/checkout', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         planName,
         billingCycle,
-        customerEmail,
-      }),
+        customerEmail
+      })
     });
 
     const data = await response.json();
@@ -59,4 +59,4 @@ export async function createCheckoutSession({
     console.error('Checkout error:', error);
     throw error;
   }
-} 
+}

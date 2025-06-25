@@ -86,9 +86,7 @@ export default function SubscriptionSettingsPanel({
     }
     if (ecommerceType === 'custom') {
       if (!apiBaseUrl || !customApiKey) {
-        setError(
-          'API Base URL and API Key are required for Custom integration.'
-        );
+        setError('API Base URL and API Key are required for Custom integration.');
         return;
       }
     } else if (ecommerceType === 'shopify') {
@@ -98,9 +96,7 @@ export default function SubscriptionSettingsPanel({
       }
     } else if (ecommerceType === 'woocommerce') {
       if (!storeUrl || !consumerKey || !consumerSecret) {
-        setError(
-          'Store URL, Consumer Key, and Consumer Secret are required for WooCommerce.'
-        );
+        setError('Store URL, Consumer Key, and Consumer Secret are required for WooCommerce.');
         return;
       }
     } else if (ecommerceType === 'prestashop') {
@@ -115,8 +111,7 @@ export default function SubscriptionSettingsPanel({
       const updates: Partial<UserSubscription> = {
         webshopUrl: webshopUrl || undefined,
         apiToken: apiToken || undefined,
-        ecommerceType:
-          (ecommerceType as UserSubscription['ecommerceType']) || undefined
+        ecommerceType: (ecommerceType as UserSubscription['ecommerceType']) || undefined
       };
       if (ecommerceType === 'custom') {
         updates.apiBaseUrl = apiBaseUrl;
@@ -146,19 +141,12 @@ export default function SubscriptionSettingsPanel({
   return (
     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-100 my-6 mx-auto">
       <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">
-          Subscription Settings
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900">Subscription Settings</h3>
         <button
           onClick={onClose}
           className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
         >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -175,12 +163,9 @@ export default function SubscriptionSettingsPanel({
           </div>
         )}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Ecommerce Type */}
+          {/* Ecommerce Type (first column) */}
           <div>
-            <label
-              htmlFor="ecommerceType"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
+            <label htmlFor="ecommerceType" className="block text-sm font-medium text-gray-700 mb-2">
               Ecommerce Platform
             </label>
             <select
@@ -197,6 +182,23 @@ export default function SubscriptionSettingsPanel({
                 </option>
               ))}
             </select>
+          </div>
+          {/* Webshop URL (second and third columns) */}
+          <div className="md:col-span-2">
+            <label htmlFor="webshopUrl" className="block text-sm font-medium text-gray-700 mb-2">
+              Webshop URL
+            </label>
+            <input
+              type="url"
+              id="webshopUrl"
+              value={webshopUrl}
+              onChange={(e) => setWebshopUrl(e.target.value)}
+              placeholder="https://your-webshop.com"
+              className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Enter the URL where your chatbot will be installed (optional)
+            </p>
           </div>
           {/* Dynamic Fields */}
           {ecommerceType === 'custom' && (
@@ -278,10 +280,7 @@ export default function SubscriptionSettingsPanel({
           {ecommerceType === 'woocommerce' && (
             <>
               <div>
-                <label
-                  htmlFor="storeUrl"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
+                <label htmlFor="storeUrl" className="block text-sm font-medium text-gray-700 mb-2">
                   Store URL
                 </label>
                 <input
@@ -333,10 +332,7 @@ export default function SubscriptionSettingsPanel({
           {ecommerceType === 'prestashop' && (
             <>
               <div>
-                <label
-                  htmlFor="storeUrl"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
+                <label htmlFor="storeUrl" className="block text-sm font-medium text-gray-700 mb-2">
                   Store URL
                 </label>
                 <input
@@ -368,32 +364,9 @@ export default function SubscriptionSettingsPanel({
               </div>
             </>
           )}
-          {/* Webshop URL */}
-          <div>
-            <label
-              htmlFor="webshopUrl"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Webshop URL
-            </label>
-            <input
-              type="url"
-              id="webshopUrl"
-              value={webshopUrl}
-              onChange={(e) => setWebshopUrl(e.target.value)}
-              placeholder="https://your-webshop.com"
-              className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Enter the URL where your chatbot will be installed (optional)
-            </p>
-          </div>
           {/* API Token */}
           <div className="col-span-1 md:col-span-2 lg:col-span-3">
-            <label
-              htmlFor="apiToken"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
+            <label htmlFor="apiToken" className="block text-sm font-medium text-gray-700 mb-2">
               API Token
             </label>
             <div className="space-y-2">

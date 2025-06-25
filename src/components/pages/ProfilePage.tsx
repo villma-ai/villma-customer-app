@@ -60,9 +60,7 @@ export default function ProfilePage() {
               />
             </svg>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Profile Not Found
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Profile Not Found</h3>
           <p className="text-gray-500">
             We couldn&apos;t load your profile. Please try refreshing the page.
           </p>
@@ -71,10 +69,5 @@ export default function ProfilePage() {
     );
   }
 
-  return (
-    <ProfileForm
-      userProfile={userProfile}
-      onProfileUpdate={handleProfileUpdate}
-    />
-  );
+  return <ProfileForm userProfile={userProfile} onProfileUpdate={handleProfileUpdate} />;
 }

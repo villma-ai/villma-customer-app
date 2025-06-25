@@ -30,7 +30,7 @@ function initializeFirebase() {
       storageBucket: config.firebase.storageBucket,
       messagingSenderId: config.firebase.messagingSenderId,
       appId: config.firebase.appId,
-      measurementId: config.firebase.measurementId,
+      measurementId: config.firebase.measurementId
     };
 
     // Initialize Firebase only if not already initialized

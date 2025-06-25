@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe, STRIPE_CONFIG } from '@/lib/stripe';
-import { createUserSubscription, updateUserSubscription, getUserSubscriptionsByStripeCustomer, getUserProfileByEmail, isWebhookEventProcessed, markWebhookEventProcessed } from '@/lib/firestore';
+import {
+  createUserSubscription,
+  updateUserSubscription,
+  getUserSubscriptionsByStripeCustomer,
+  getUserProfileByEmail,
+  isWebhookEventProcessed,
+  markWebhookEventProcessed
+} from '@/lib/firestore';
 import Stripe from 'stripe';
 
 export async function POST(request: NextRequest) {
@@ -16,10 +23,7 @@ export async function POST(request: NextRequest) {
   const signature = request.headers.get('stripe-signature');
 
   if (!signature) {
-    return NextResponse.json(
-      { error: 'Missing stripe signature' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'Missing stripe signature' }, { status: 400 });
   }
 
   let event: Stripe.Event;
@@ -28,10 +32,7 @@ export async function POST(request: NextRequest) {
     event = stripe.webhooks.constructEvent(body, signature, STRIPE_CONFIG.webhookSecret);
   } catch (err) {
     console.error('Webhook signature verification failed:', err);
-    return NextResponse.json(
-      { error: 'Invalid signature' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
   console.log('Received webhook event:', event.type, 'ID:', event.id);
@@ -71,10 +72,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error('Webhook handler error:', error);
-    return NextResponse.json(
-      { error: 'Webhook handler failed' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 });
   }
 }
 
@@ -128,8 +126,12 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     console.log('Customer email:', customerEmail);
 
     // Check if subscription already exists to prevent duplicates
-    const existingSubscriptions = await getUserSubscriptionsByStripeCustomer(subscription.customer as string);
-    const alreadyExists = existingSubscriptions.some((sub) => sub.stripeSubscriptionId === subscription.id);
+    const existingSubscriptions = await getUserSubscriptionsByStripeCustomer(
+      subscription.customer as string
+    );
+    const alreadyExists = existingSubscriptions.some(
+      (sub) => sub.stripeSubscriptionId === subscription.id
+    );
 
     if (alreadyExists) {
       console.log('Subscription already exists, skipping creation');
@@ -137,7 +139,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     }
 
     // Additional check: look for recent subscriptions with same customer and plan
-    const recentSubscriptions = existingSubscriptions.filter(sub => {
+    const recentSubscriptions = existingSubscriptions.filter((sub) => {
       const createdAt = new Date(sub.createdAt);
       const now = new Date();
       const timeDiff = now.getTime() - createdAt.getTime();
@@ -208,11 +210,16 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
         planBillingCycle: billingCycle as 'monthly' | 'yearly',
         planPrice: subscriptionItem.price.unit_amount! / 100,
         planDescription: `Stripe subscription for ${planName} ${billingCycle}`,
-        status: (subscription.status === 'active' ? 'active' : 'pending') as 'active' | 'pending' | 'cancelled' | 'expired',
+        status: (subscription.status === 'active' ? 'active' : 'pending') as
+          | 'active'
+          | 'pending'
+          | 'cancelled'
+          | 'expired',
         startDate: startDate,
         endDate: endDate,
         stripeSubscriptionId: subscription.id,
         stripeCustomerId: subscription.customer as string,
+        hasExtraProdData: planName === 'EXTRA'
       };
 
       console.log('Creating user subscription with data:', subscriptionData);
@@ -237,9 +244,13 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   try {
     const subscriptionItem = subscription.items.data[0];
     await updateUserSubscription(subscription.id, {
-      status: (subscription.status === 'active' ? 'active' : 'cancelled') as 'active' | 'pending' | 'cancelled' | 'expired',
+      status: (subscription.status === 'active' ? 'active' : 'cancelled') as
+        | 'active'
+        | 'pending'
+        | 'cancelled'
+        | 'expired',
       endDate: new Date(subscriptionItem.current_period_end * 1000),
-      updatedAt: new Date(),
+      updatedAt: new Date()
     });
   } catch (error) {
     console.error('Error updating subscription:', error);
@@ -252,9 +263,9 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   try {
     await updateUserSubscription(subscription.id, {
       status: 'cancelled',
-      updatedAt: new Date(),
+      updatedAt: new Date()
     });
   } catch (error) {
     console.error('Error deleting subscription:', error);
   }
-} 
+}

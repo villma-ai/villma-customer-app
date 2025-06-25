@@ -72,12 +72,10 @@ export default function SubscriptionPlans({ userId }: SubscriptionPlansProps) {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="text-center mb-12">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">
-          Available Subscription Plans
-        </h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">Available Subscription Plans</h2>
         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-          Choose the perfect plan for your business needs. Scale your AI-powered
-          solutions with our flexible subscription options.
+          Choose the perfect plan for your business needs. Scale your AI-powered solutions with our
+          flexible subscription options.
         </p>
       </div>
 
@@ -151,9 +149,7 @@ export default function SubscriptionPlans({ userId }: SubscriptionPlansProps) {
                     />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                  {plan.name}
-                </h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
                 <div className="text-5xl font-bold text-sky-600 mb-2">
                   €{plan.price}
                   <span className="text-lg font-normal text-gray-500">
@@ -221,12 +217,9 @@ export default function SubscriptionPlans({ userId }: SubscriptionPlansProps) {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              No Plans Available
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Plans Available</h3>
             <p className="text-gray-500">
-              Subscription plans are not available at the moment. Please check
-              back later.
+              Subscription plans are not available at the moment. Please check back later.
             </p>
           </div>
         </div>

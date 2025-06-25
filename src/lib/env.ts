@@ -92,8 +92,10 @@ const requiredEnvVars: EnvVar[] = [
 export function validateEnvironmentVariables(): void {
   // Skip validation during build time if no environment variables are set
   const config = getRuntimeConfig();
-  if (process.env.NODE_ENV === 'production' &&
-    (!config.stripe.secretKey || config.stripe.secretKey === 'sk_test_dummy_secret_key')) {
+  if (
+    process.env.NODE_ENV === 'production' &&
+    (!config.stripe.secretKey || config.stripe.secretKey === 'sk_test_dummy_secret_key')
+  ) {
     console.log('⚠️  Skipping environment validation during build (no runtime variables set)');
     return;
   }
@@ -119,7 +121,7 @@ export function validateEnvironmentVariables(): void {
 
     if (missingVars.length > 0) {
       console.error('Missing required environment variables:');
-      missingVars.forEach(envVar => {
+      missingVars.forEach((envVar) => {
         console.error(`  - ${envVar.name}: ${envVar.description}`);
       });
       console.error('');
@@ -127,13 +129,15 @@ export function validateEnvironmentVariables(): void {
 
     if (emptyVars.length > 0) {
       console.error('Empty required environment variables:');
-      emptyVars.forEach(envVar => {
+      emptyVars.forEach((envVar) => {
         console.error(`  - ${envVar.name}: ${envVar.description}`);
       });
       console.error('');
     }
 
-    console.error('Please set all required environment variables in your .env.local file or deployment environment.');
+    console.error(
+      'Please set all required environment variables in your .env.local file or deployment environment.'
+    );
     console.error('');
     console.error('Example .env.local file:');
     console.error('```');
@@ -160,15 +164,19 @@ export function validateEnvironmentVariables(): void {
 
     // In development, throw an error to prevent the app from starting
     if (process.env.NODE_ENV === 'development') {
-      throw new Error('Environment variables validation failed. Please check the console output above.');
+      throw new Error(
+        'Environment variables validation failed. Please check the console output above.'
+      );
     }
 
     // In production, log the error but don't throw to avoid crashing the app
-    console.error('⚠️  App will continue to run but may not function properly without these environment variables.');
+    console.error(
+      '⚠️  App will continue to run but may not function properly without these environment variables.'
+    );
   } else {
     console.log('✅ All required environment variables are set correctly!');
   }
 }
 
 // Export the list of required env vars for reference
-export { requiredEnvVars }; 
+export { requiredEnvVars };

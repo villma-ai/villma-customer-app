@@ -17,8 +17,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Find the most recent subscription (keep the latest one)
-    const sortedSubscriptions = subscriptions.sort((a, b) =>
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    const sortedSubscriptions = subscriptions.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
 
     const latestSubscription = sortedSubscriptions[0];
@@ -36,11 +36,13 @@ export async function POST(request: NextRequest) {
       duplicatesFound: duplicates.length,
       note: 'Manual cleanup of userId field may be needed'
     });
-
   } catch (error) {
     console.error('Cleanup error:', error);
-    return NextResponse.json({
-      error: 'Cleanup failed'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: 'Cleanup failed'
+      },
+      { status: 500 }
+    );
   }
-} 
+}

@@ -22,7 +22,7 @@ function convertTimestamps(data: Record<string, unknown>): Record<string, unknow
   // Convert known date fields
   const dateFields = ['createdAt', 'updatedAt', 'startDate', 'endDate', 'dueDate', 'paidAt'];
 
-  dateFields.forEach(field => {
+  dateFields.forEach((field) => {
     if (converted[field] && converted[field] instanceof Timestamp) {
       converted[field] = (converted[field] as Timestamp).toDate();
     }
@@ -35,7 +35,9 @@ function convertTimestamps(data: Record<string, unknown>): Record<string, unknow
 function getFirestoreInstance() {
   const dbInstance = db();
   if (!dbInstance) {
-    throw new Error('Firebase is not properly configured. Please check your environment variables.');
+    throw new Error(
+      'Firebase is not properly configured. Please check your environment variables.'
+    );
   }
   return dbInstance;
 }
@@ -80,13 +82,15 @@ export async function getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
   const plansRef = collection(dbInstance, 'subscriptionPlans');
   const plansSnap = await getDocs(plansRef);
 
-  return plansSnap.docs.map(doc => ({
+  return plansSnap.docs.map((doc) => ({
     id: doc.id,
     ...convertTimestamps(doc.data())
   })) as unknown as SubscriptionPlan[];
 }
 
-export async function createUserSubscription(subscription: Omit<UserSubscription, 'id' | 'createdAt' | 'updatedAt'>) {
+export async function createUserSubscription(
+  subscription: Omit<UserSubscription, 'id' | 'createdAt' | 'updatedAt'>
+) {
   const dbInstance = getFirestoreInstance();
   const subscriptionRef = collection(dbInstance, 'userSubscriptions');
   const now = new Date();
@@ -106,20 +110,22 @@ export async function getUserSubscriptions(userId: string): Promise<UserSubscrip
   const q = query(subscriptionsRef, where('userId', '==', userId));
   const subscriptionsSnap = await getDocs(q);
 
-  return subscriptionsSnap.docs.map(doc => ({
+  return subscriptionsSnap.docs.map((doc) => ({
     id: doc.id,
     ...convertTimestamps(doc.data())
   })) as unknown as UserSubscription[];
 }
 
 // Get user subscriptions by Stripe customer ID
-export async function getUserSubscriptionsByStripeCustomer(stripeCustomerId: string): Promise<UserSubscription[]> {
+export async function getUserSubscriptionsByStripeCustomer(
+  stripeCustomerId: string
+): Promise<UserSubscription[]> {
   const dbInstance = getFirestoreInstance();
   const subscriptionsRef = collection(dbInstance, 'userSubscriptions');
   const q = query(subscriptionsRef, where('stripeCustomerId', '==', stripeCustomerId));
   const subscriptionsSnap = await getDocs(q);
 
-  return subscriptionsSnap.docs.map(doc => ({
+  return subscriptionsSnap.docs.map((doc) => ({
     id: doc.id,
     ...convertTimestamps(doc.data())
   })) as unknown as UserSubscription[];
@@ -143,7 +149,24 @@ export async function getUserProfileByEmail(email: string): Promise<UserProfile 
 // Update user subscription settings
 export async function updateUserSubscription(
   subscriptionId: string,
-  updates: Partial<Pick<UserSubscription, 'webshopUrl' | 'apiToken' | 'status' | 'endDate' | 'updatedAt' | 'ecommerceType' | 'apiBaseUrl' | 'apiKey' | 'shopDomain' | 'adminApiToken' | 'storeUrl' | 'consumerKey' | 'consumerSecret'>>
+  updates: Partial<
+    Pick<
+      UserSubscription,
+      | 'webshopUrl'
+      | 'apiToken'
+      | 'status'
+      | 'endDate'
+      | 'updatedAt'
+      | 'ecommerceType'
+      | 'apiBaseUrl'
+      | 'apiKey'
+      | 'shopDomain'
+      | 'adminApiToken'
+      | 'storeUrl'
+      | 'consumerKey'
+      | 'consumerSecret'
+    >
+  >
 ) {
   const dbInstance = getFirestoreInstance();
   const subscriptionRef = doc(dbInstance, 'userSubscriptions', subscriptionId);
@@ -177,6 +200,21 @@ export async function markWebhookEventProcessed(eventId: string): Promise<void> 
   const eventsRef = collection(dbInstance, 'webhookEvents');
   await addDoc(eventsRef, {
     eventId,
-    processedAt: new Date(),
+    processedAt: new Date()
   });
+}
+
+export async function getUserSubscriptionById(
+  subscriptionId: string
+): Promise<UserSubscription | null> {
+  const dbInstance = getFirestoreInstance();
+  const subscriptionRef = doc(dbInstance, 'userSubscriptions', subscriptionId);
+  const subscriptionSnap = await getDoc(subscriptionRef);
+  if (subscriptionSnap.exists()) {
+    return {
+      id: subscriptionSnap.id,
+      ...convertTimestamps(subscriptionSnap.data())
+    } as unknown as UserSubscription;
+  }
+  return null;
 }
