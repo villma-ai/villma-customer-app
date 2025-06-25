@@ -16,8 +16,8 @@ function initializeFirebase() {
     const config = getRuntimeConfig();
 
     // Check if we have valid Firebase configuration
-    if (!config.firebase.apiKey || config.firebase.apiKey === 'dummy_firebase_api_key') {
-      console.warn('⚠️  Firebase not properly configured. Skipping initialization.');
+    if (!config.firebase.apiKey) {
+      console.warn('⚠️  Firebase not properly configured. Skipping initialization.', process.env);
       return { app: null, auth: null, db: null };
     }
 
@@ -71,7 +71,7 @@ export const db = (): Firestore | null => {
   }
 };
 
-export default (): FirebaseApp | null => {
+const getFirebaseApp = (): FirebaseApp | null => {
   try {
     const { app } = initializeFirebase();
     return app;
@@ -80,3 +80,5 @@ export default (): FirebaseApp | null => {
     return null;
   }
 };
+
+export default getFirebaseApp;
