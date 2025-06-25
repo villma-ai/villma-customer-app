@@ -20,8 +20,8 @@ function initializeFirebase() {
       console.warn('⚠️  Firebase not properly configured. Skipping initialization.');
       for (const [key, value] of Object.entries(process.env)) {
         console.log(`ENV ${key}: ${value}`);
-        return { app: null, auth: null, db: null };
       }
+      return { app: null, auth: null, db: null };
 
       // Firebase configuration
       const firebaseConfig = {
