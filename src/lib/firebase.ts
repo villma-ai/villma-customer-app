@@ -1,7 +1,7 @@
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
-import { getRuntimeConfig } from './runtime-config';
+import { getClientConfig } from './runtime-config';
 
 // Lazy initialization of Firebase
 let app: FirebaseApp | null = null;
@@ -13,7 +13,7 @@ function initializeFirebase() {
     if (app) return { app, auth: authInstance, db: dbInstance };
 
     // Get runtime configuration
-    const config = getRuntimeConfig();
+    const config = getClientConfig();
 
     console.log('CONFIG', config);
     for (const [key, value] of Object.entries(process.env)) {
