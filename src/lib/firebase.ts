@@ -15,11 +15,6 @@ function initializeFirebase() {
     // Get runtime configuration
     const config = getClientConfig();
 
-    console.log('CONFIG', config);
-    for (const [key, value] of Object.entries(process.env)) {
-      console.log(`ENV ${key}: ${value}`);
-    }
-
     // Check if we have valid Firebase configuration
     if (!config.firebase.apiKey) {
       console.warn('⚠️  Firebase not properly configured. Skipping initialization.');
