@@ -1,7 +1,17 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { getUserSubscriptionById } from '@/lib/firestore';
+import {
+  getUserSubscriptionById,
+  getUserProducts,
+  updateUserProductDescription,
+  UserProduct,
+  addUserProduct
+} from '@/lib/firestore';
 import { useShopifyProducts } from '@/hooks/useShopifyProducts';
+import { useAuth } from '@/contexts/AuthContext';
+import ProductSearchInput from './ProductSearchInput';
+import EnhancedProductList from './EnhancedProductList';
+import EditProductModal from './EditProductModal';
 
 interface ProductSearchProps {
   subscriptionId: string;
@@ -15,9 +25,14 @@ interface SubscriptionDetails {
 }
 
 export default function ProductSearch({ subscriptionId }: ProductSearchProps) {
+  const { currentUser } = useAuth();
   const [search, setSearch] = useState('');
   const [subscription, setSubscription] = useState<SubscriptionDetails | null>(null);
   const [error, setError] = useState('');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [addedProducts, setAddedProducts] = useState<UserProduct[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<UserProduct | null>(null);
+  const [saving, setSaving] = useState(false);
 
   // Fetch subscription details from Firestore
   useEffect(() => {
@@ -41,6 +56,20 @@ export default function ProductSearch({ subscriptionId }: ProductSearchProps) {
     fetchSubscription();
   }, [subscriptionId]);
 
+  // Fetch added products for this user/subscription
+  useEffect(() => {
+    if (!currentUser || !subscriptionId) return;
+    async function fetchProducts() {
+      try {
+        const products = await getUserProducts(currentUser!.uid);
+        setAddedProducts(products.filter((p) => p.userSubscriptionPlanId === subscriptionId));
+      } catch {
+        setError('Failed to fetch added products');
+      }
+    }
+    fetchProducts();
+  }, [currentUser, subscriptionId]);
+
   // Use the custom hook for Shopify product search
   const shopDomain = subscription?.ecommerceType === 'shopify' ? subscription.shopDomain || '' : '';
   const adminApiToken =
@@ -50,6 +79,54 @@ export default function ProductSearch({ subscriptionId }: ProductSearchProps) {
     loading,
     error: shopifyError
   } = useShopifyProducts(shopDomain, adminApiToken, search);
+
+  const handleAddProduct = async (product: { id: string; title: string }) => {
+    if (!currentUser) return;
+    setSaving(true);
+    try {
+      const firestoreId = product.id.includes('/') ? product.id.split('/').pop() : product.id;
+      await addUserProduct({
+        id: firestoreId!,
+        title: product.title,
+        userId: currentUser.uid,
+        userSubscriptionPlanId: subscriptionId,
+        description: ''
+      });
+      // Refresh added products
+      if (currentUser) {
+        const products = await getUserProducts(currentUser.uid);
+        setAddedProducts(products.filter((p) => p.userSubscriptionPlanId === subscriptionId));
+      }
+      setDropdownOpen(false);
+    } catch (err) {
+      setError('Failed to add product');
+      console.error('Failed to add product:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleProductClick = (product: UserProduct) => {
+    setSelectedProduct(product);
+  };
+
+  const handleSaveDescription = async (description: string) => {
+    if (!selectedProduct) return;
+    setSaving(true);
+    try {
+      await updateUserProductDescription(selectedProduct.id, description);
+      // Refresh added products
+      if (currentUser) {
+        const products = await getUserProducts(currentUser.uid);
+        setAddedProducts(products.filter((p) => p.userSubscriptionPlanId === subscriptionId));
+      }
+      setSelectedProduct(null);
+    } catch {
+      setError('Failed to update description');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (!subscription) {
     return <div className="text-gray-500">Loading subscription details...</div>;
@@ -65,29 +142,29 @@ export default function ProductSearch({ subscriptionId }: ProductSearchProps) {
 
   return (
     <div>
-      <label htmlFor="product-search" className="block text-sm font-medium text-gray-700 mb-2">
-        Search Products
-      </label>
-      <input
-        id="product-search"
-        type="text"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Type to search products..."
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm mb-4"
+      <ProductSearchInput
+        search={search}
+        setSearch={setSearch}
+        dropdownOpen={dropdownOpen}
+        setDropdownOpen={setDropdownOpen}
+        loading={loading}
+        error={error}
+        shopifyError={shopifyError}
+        products={products}
+        handleAddProduct={handleAddProduct}
+        saving={saving}
       />
-      {loading && <div className="text-gray-500 mb-2">Searching...</div>}
-      {(error || shopifyError) && <div className="text-red-600 mb-2">{error || shopifyError}</div>}
-      <ul className="space-y-2">
-        {products.map((product) => (
-          <li key={product.id} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-            {product.title}
-          </li>
-        ))}
-        {!loading && products.length === 0 && search && (
-          <li className="text-gray-400">No products found.</li>
-        )}
-      </ul>
+
+      <EnhancedProductList products={addedProducts} onProductClick={handleProductClick} />
+
+      {selectedProduct && (
+        <EditProductModal
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+          onSave={handleSaveDescription}
+          saving={saving}
+        />
+      )}
     </div>
   );
 }

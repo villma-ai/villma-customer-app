@@ -218,3 +218,51 @@ export async function getUserSubscriptionById(
   }
   return null;
 }
+
+// User Product Functions
+export interface UserProduct {
+  id: string;
+  title: string;
+  userId: string;
+  userSubscriptionPlanId: string;
+  description: string;
+}
+
+export async function addUserProduct(
+  product: Pick<UserProduct, 'id' | 'title' | 'userId' | 'userSubscriptionPlanId'> & {
+    description?: string;
+  }
+) {
+  const dbInstance = getFirestoreInstance();
+  const productsRef = collection(dbInstance, 'userProducts');
+  const now = new Date();
+  await setDoc(doc(productsRef, product.id), {
+    id: product.id,
+    title: product.title,
+    userId: product.userId,
+    userSubscriptionPlanId: product.userSubscriptionPlanId,
+    description: product.description || '',
+    createdAt: now,
+    updatedAt: now
+  });
+}
+
+export async function getUserProducts(userId: string): Promise<UserProduct[]> {
+  const dbInstance = getFirestoreInstance();
+  const productsRef = collection(dbInstance, 'userProducts');
+  const q = query(productsRef, where('userId', '==', userId));
+  const productsSnap = await getDocs(q);
+  return productsSnap.docs.map((doc) => ({
+    id: doc.id,
+    ...(doc.data() as Omit<UserProduct, 'id'>)
+  }));
+}
+
+export async function updateUserProductDescription(productId: string, description: string) {
+  const dbInstance = getFirestoreInstance();
+  const productRef = doc(dbInstance, 'userProducts', productId);
+  await updateDoc(productRef, {
+    description,
+    updatedAt: new Date()
+  });
+}
