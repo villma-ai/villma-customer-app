@@ -4,13 +4,16 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import TooltipHelp from '@/components/ui/TooltipHelp';
+import Image from 'next/image';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const { login, signInWithGoogle } = useAuth();
   const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -26,6 +29,20 @@ export default function LoginForm() {
       console.error('Login error:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    setGoogleLoading(true);
+    setError('');
+    try {
+      await signInWithGoogle();
+      router.push('/profile');
+    } catch (error) {
+      setError('Google sign-in failed.');
+      console.error('Google sign-in error:', error);
+    } finally {
+      setGoogleLoading(false);
     }
   }
 
@@ -97,6 +114,26 @@ export default function LoginForm() {
             )}
           </button>
         </form>
+
+        <div className="flex justify-end mt-2 mb-2">
+          <TooltipHelp label="Need help logging in?" href="/public-help#login">
+            <span className="text-xs text-sky-700 underline cursor-pointer">Help</span>
+          </TooltipHelp>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={googleLoading}
+          className="w-full flex items-center justify-center gap-2 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 py-3 px-6 rounded-lg font-semibold transition duration-200 shadow-sm mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {googleLoading ? (
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
+          ) : (
+            <Image src="/google.svg" alt="Google" width={30} height={30} />
+          )}
+          Continue with Google
+        </button>
 
         {/* Register Link */}
         <div className="mt-6 text-center">

@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { createUserProfile } from '@/lib/firestore';
 import Link from 'next/link';
 import { z } from 'zod';
+import TooltipHelp from '@/components/ui/TooltipHelp';
+import Image from 'next/image';
 
 // Zod validation schema
 const registerSchema = z
@@ -43,7 +45,8 @@ export default function RegisterForm() {
   const [errors, setErrors] = useState<Partial<RegisterFormData>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { signup } = useAuth();
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const { signup, signInWithGoogle } = useAuth();
   const router = useRouter();
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -108,6 +111,20 @@ export default function RegisterForm() {
       console.error('Registration error:', err);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    setGoogleLoading(true);
+    setError('');
+    try {
+      await signInWithGoogle();
+      router.push('/profile');
+    } catch (error) {
+      setError('Google sign-in failed.');
+      console.error('Google sign-in error:', error);
+    } finally {
+      setGoogleLoading(false);
     }
   }
 
@@ -243,6 +260,26 @@ export default function RegisterForm() {
             )}
           </button>
         </form>
+
+        <div className="flex justify-end mt-2 mb-2">
+          <TooltipHelp label="Need help registering?" href="/public-help#register">
+            <span className="text-xs text-sky-700 underline cursor-pointer">Help</span>
+          </TooltipHelp>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={googleLoading}
+          className="w-full flex items-center justify-center gap-2 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 py-3 px-6 rounded-lg font-semibold transition duration-200 shadow-sm mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {googleLoading ? (
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
+          ) : (
+            <Image src="/google.svg" alt="Google" width={30} height={30} />
+          )}
+          Continue with Google
+        </button>
 
         {/* Login Link */}
         <div className="mt-6 text-center">
