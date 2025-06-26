@@ -74,9 +74,13 @@ export default function DashboardHelpPage() {
         <h2 className="text-xl font-semibold mb-2">Contact/Support</h2>
         <p>
           If you need help, contact our support team{' '}
-          <a href="https://villma.ai/contacts" className="text-sky-700 underline">
+          <Link
+            href="https://villma.ai/contacts"
+            target="_blank"
+            className="text-sky-700 underline"
+          >
             from our website
-          </a>
+          </Link>
         </p>
       </section>
     </div>
