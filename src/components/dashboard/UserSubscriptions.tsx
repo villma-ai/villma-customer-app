@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { getUserSubscriptions } from '@/lib/firestore';
+import { getUserSubscriptions, isSubscriptionSettingsComplete } from '@/lib/firestore';
 import SubscriptionSettingsPanel from '@/components/ui/SubscriptionSettingsPanel';
+import HelpIconLink from '@/components/ui/HelpIconLink';
 import { UserSubscription } from '@villma/villma-ts-shared';
 import { useRouter } from 'next/navigation';
 
@@ -110,7 +111,8 @@ export default function UserSubscriptions({ userId }: UserSubscriptionsProps) {
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">My Subscriptions</h2>
               <p className="text-xl text-gray-600">
-                Manage your active subscriptions and chatbot settings
+                Manage your active subscriptions and chatbot settings{' '}
+                <HelpIconLink href="./help#subscriptions" label="help" />
               </p>
             </div>
             {subscriptions.length === 0 ? (
@@ -185,7 +187,7 @@ export default function UserSubscriptions({ userId }: UserSubscriptionsProps) {
                           </div>
                           <button
                             onClick={() => handleToggleSettings(subscription)}
-                            className="transition-all duration-300 p-2 rounded-full cursor-pointer border-2 border-white/30 bg-white/10 shadow hover:bg-white/20 text-white"
+                            className={`transition-all duration-300 p-2 rounded-full cursor-pointer border-2 border-white/30 bg-white/10 shadow hover:bg-white/20 text-white ${!isSubscriptionSettingsComplete(subscription) ? 'animate-pulse' : ''}`}
                             title="Settings"
                           >
                             <svg

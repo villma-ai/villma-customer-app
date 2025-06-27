@@ -1,5 +1,6 @@
 'use client';
 import { useRef, useEffect, Dispatch, SetStateAction } from 'react';
+import HelpIconLink from './HelpIconLink';
 
 interface ProductSearchInputProps {
   search: string;
@@ -47,7 +48,7 @@ export default function ProductSearchInput({
   return (
     <div className="relative">
       <label htmlFor="product-search" className="block text-sm font-medium text-gray-700 mb-2">
-        Search Products
+        Search Products <HelpIconLink href="./help#enhanced-products" label="help" />
       </label>
       <input
         id="product-search"

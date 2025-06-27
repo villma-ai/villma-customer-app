@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import TooltipHelp from '@/components/ui/TooltipHelp';
 import Image from 'next/image';
 import { getUserProfile, isUserProfileComplete } from '@/lib/firestore';
 
@@ -137,12 +136,6 @@ export default function LoginForm() {
             )}
           </button>
         </form>
-
-        <div className="flex justify-end mt-2 mb-2">
-          <TooltipHelp label="Need help logging in?" href="/public-help#login">
-            <span className="text-xs text-sky-700 underline cursor-pointer">Help</span>
-          </TooltipHelp>
-        </div>
 
         <button
           type="button"

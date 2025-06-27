@@ -1,5 +1,6 @@
 'use client';
 import { UserProduct } from '@/lib/firestore';
+import HelpIconLink from './HelpIconLink';
 
 interface EnhancedProductListProps {
   products: UserProduct[];
@@ -12,7 +13,9 @@ export default function EnhancedProductList({
 }: EnhancedProductListProps) {
   return (
     <div className="mt-4">
-      <div className="font-semibold mb-2 text-sm text-gray-700">Enhanced Products</div>
+      <div className="font-semibold mb-2 text-sm text-gray-700">
+        Enhanced Products <HelpIconLink href="./help#enhanced-products" label="help" />
+      </div>
       <ul className="space-y-2">
         {products.map((product) => (
           <li

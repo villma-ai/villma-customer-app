@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { createUserProfile } from '@/lib/firestore';
 import Link from 'next/link';
 import { z } from 'zod';
-import TooltipHelp from '@/components/ui/TooltipHelp';
 import Image from 'next/image';
 
 // Zod validation schema
@@ -260,13 +259,6 @@ export default function RegisterForm() {
             )}
           </button>
         </form>
-
-        <div className="flex justify-end mt-2 mb-2">
-          <TooltipHelp label="Need help registering?" href="/public-help#register">
-            <span className="text-xs text-sky-700 underline cursor-pointer">Help</span>
-          </TooltipHelp>
-        </div>
-
         <button
           type="button"
           onClick={handleGoogleSignIn}
