@@ -3,7 +3,7 @@ import Link from 'next/link';
 export default function DashboardHelpPage() {
   return (
     <div className="max-w-2xl mx-auto py-12 px-4">
-      <h1 className="text-3xl font-bold mb-6">Using Your Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-6">DRAFT --- Using Your Dashboard</h1>
       <nav className="mb-8">
         <ul className="list-disc list-inside space-y-2 text-sky-700">
           <li>

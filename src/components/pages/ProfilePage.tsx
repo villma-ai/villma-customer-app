@@ -5,11 +5,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getUserProfile } from '@/lib/firestore';
 import ProfileForm from '@/components/dashboard/ProfileForm';
 import { UserProfile } from '@villma/villma-ts-shared';
+import { useRouter } from 'next/navigation';
 
 export default function ProfilePage() {
   const { currentUser } = useAuth();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     async function loadUserProfile() {
@@ -26,7 +28,7 @@ export default function ProfilePage() {
     }
 
     loadUserProfile();
-  }, [currentUser]);
+  }, [currentUser, router]);
 
   function handleProfileUpdate(updatedProfile: UserProfile) {
     setUserProfile(updatedProfile);

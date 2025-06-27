@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getSubscriptionPlans } from '@/lib/firestore';
+import { getSubscriptionPlans, getUserProfile, isUserProfileComplete } from '@/lib/firestore';
 import { createCheckoutSession } from '@/lib/stripe-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { SubscriptionPlan } from '@villma/villma-ts-shared';
@@ -16,10 +16,12 @@ export default function SubscriptionPlans({ userId }: SubscriptionPlansProps) {
   const [purchasing, setPurchasing] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [activeTab, setActiveTab] = useState<'monthly' | 'yearly'>('monthly');
+  const [profileComplete, setProfileComplete] = useState<boolean | null>(null);
   const { currentUser } = useAuth();
 
   useEffect(() => {
     loadPlans();
+    checkProfile();
   }, []);
 
   async function loadPlans() {
@@ -30,6 +32,16 @@ export default function SubscriptionPlans({ userId }: SubscriptionPlansProps) {
       console.error('Error loading plans:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function checkProfile() {
+    if (!userId) return;
+    try {
+      const profile = await getUserProfile(userId);
+      setProfileComplete(isUserProfileComplete(profile));
+    } catch {
+      setProfileComplete(false);
     }
   }
 
@@ -60,7 +72,7 @@ export default function SubscriptionPlans({ userId }: SubscriptionPlansProps) {
   // Filter plans by active tab
   const filteredPlans = plans.filter((plan) => plan.billingCycle === activeTab);
 
-  if (loading) {
+  if (loading || profileComplete === null) {
     return (
       <div className="text-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600 mx-auto"></div>
@@ -180,20 +192,26 @@ export default function SubscriptionPlans({ userId }: SubscriptionPlansProps) {
                 ))}
               </ul>
 
-              <button
-                onClick={() => handlePurchase(plan)}
-                disabled={purchasing === plan.id}
-                className="w-full bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white py-3 px-6 rounded-lg font-semibold transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl cursor-pointer"
-              >
-                {purchasing === plan.id ? (
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    Processing...
-                  </div>
-                ) : (
-                  `Subscribe to ${plan.name}`
-                )}
-              </button>
+              {profileComplete ? (
+                <button
+                  onClick={() => handlePurchase(plan)}
+                  disabled={purchasing === plan.id}
+                  className="w-full bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white py-3 px-6 rounded-lg font-semibold transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl cursor-pointer"
+                >
+                  {purchasing === plan.id ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      Processing...
+                    </div>
+                  ) : (
+                    `Subscribe to ${plan.name}`
+                  )}
+                </button>
+              ) : (
+                <div className="w-full bg-yellow-100 text-yellow-800 border border-yellow-300 rounded-lg py-3 px-6 font-semibold text-center mt-4">
+                  Please complete all required profile fields before subscribing to a plan.
+                </div>
+              )}
             </div>
           </div>
         ))}

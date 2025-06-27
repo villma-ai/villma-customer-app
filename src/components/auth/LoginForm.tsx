@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import TooltipHelp from '@/components/ui/TooltipHelp';
 import Image from 'next/image';
+import { getUserProfile, isUserProfileComplete } from '@/lib/firestore';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
@@ -23,7 +24,14 @@ export default function LoginForm() {
 
     try {
       await login(email, password);
-      router.push('/profile');
+      // Fetch user profile and check completeness
+      const user = await getUserProfileFromAuth();
+      const profile = user ? await getUserProfile(user.uid) : null;
+      if (isUserProfileComplete(profile)) {
+        router.push('/subscriptions');
+      } else {
+        router.push('/profile');
+      }
     } catch (error) {
       setError('Invalid email or password. Please try again.');
       console.error('Login error:', error);
@@ -37,13 +45,28 @@ export default function LoginForm() {
     setError('');
     try {
       await signInWithGoogle();
-      router.push('/profile');
+      // Fetch user profile and check completeness
+      const user = await getUserProfileFromAuth();
+      const profile = user ? await getUserProfile(user.uid) : null;
+      if (isUserProfileComplete(profile)) {
+        router.push('/subscriptions');
+      } else {
+        router.push('/profile');
+      }
     } catch (error) {
       setError('Google sign-in failed.');
       console.error('Google sign-in error:', error);
     } finally {
       setGoogleLoading(false);
     }
+  }
+
+  // Helper to get the current user from Firebase Auth
+  async function getUserProfileFromAuth() {
+    // Use Firebase Auth directly to get the current user
+    const { auth } = await import('@/lib/firebase');
+    const authInstance = auth();
+    return authInstance ? authInstance.currentUser : null;
   }
 
   return (

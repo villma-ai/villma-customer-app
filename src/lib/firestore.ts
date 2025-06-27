@@ -266,3 +266,17 @@ export async function updateUserProductDescription(productId: string, descriptio
     updatedAt: new Date()
   });
 }
+
+// Utility: Check if a user profile is complete
+export function isUserProfileComplete(profile: UserProfile | null): boolean {
+  if (!profile) return false;
+  return Boolean(
+    profile.firstName &&
+      profile.lastName &&
+      profile.address &&
+      profile.address.street &&
+      profile.address.city &&
+      profile.address.postalCode &&
+      profile.address.country
+  );
+}
