@@ -272,12 +272,12 @@ export function isUserProfileComplete(profile: UserProfile | null): boolean {
   if (!profile) return false;
   return Boolean(
     profile.firstName &&
-    profile.lastName &&
-    profile.address &&
-    profile.address.street &&
-    profile.address.city &&
-    profile.address.postalCode &&
-    profile.address.country
+      profile.lastName &&
+      profile.address &&
+      profile.address.street &&
+      profile.address.city &&
+      profile.address.postalCode &&
+      profile.address.country
   );
 }
 
@@ -289,31 +289,31 @@ export function isSubscriptionSettingsComplete(subscription: UserSubscription): 
     case 'custom':
       return Boolean(
         subscription.webshopUrl &&
-        subscription.apiToken &&
-        subscription.apiBaseUrl &&
-        subscription.apiKey
+          subscription.apiToken &&
+          subscription.apiBaseUrl &&
+          subscription.apiKey
       );
     case 'shopify':
       return Boolean(
         subscription.webshopUrl &&
-        subscription.apiToken &&
-        subscription.shopDomain &&
-        subscription.adminApiToken
+          subscription.apiToken &&
+          subscription.shopDomain &&
+          subscription.adminApiToken
       );
     case 'woocommerce':
       return Boolean(
         subscription.webshopUrl &&
-        subscription.apiToken &&
-        subscription.storeUrl &&
-        subscription.consumerKey &&
-        subscription.consumerSecret
+          subscription.apiToken &&
+          subscription.storeUrl &&
+          subscription.consumerKey &&
+          subscription.consumerSecret
       );
     case 'prestashop':
       return Boolean(
         subscription.webshopUrl &&
-        subscription.apiToken &&
-        subscription.storeUrl &&
-        subscription.apiKey
+          subscription.apiToken &&
+          subscription.storeUrl &&
+          subscription.apiKey
       );
     default:
       return false;
