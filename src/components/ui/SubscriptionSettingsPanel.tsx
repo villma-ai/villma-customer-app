@@ -29,7 +29,8 @@ export default function SubscriptionSettingsPanel({
   const [apiBaseUrl, setApiBaseUrl] = useState('');
   const [customApiKey, setCustomApiKey] = useState('');
   const [shopDomain, setShopDomain] = useState('');
-  const [adminApiToken, setAdminApiToken] = useState('');
+  const [clientId, setClientId] = useState('');
+  const [clientSecret, setClientSecret] = useState('');
   const [storeUrl, setStoreUrl] = useState('');
   const [consumerKey, setConsumerKey] = useState('');
   const [consumerSecret, setConsumerSecret] = useState('');
@@ -43,7 +44,8 @@ export default function SubscriptionSettingsPanel({
       setApiBaseUrl(subscription.apiBaseUrl || '');
       setCustomApiKey(subscription.apiKey || '');
       setShopDomain(subscription.shopDomain || '');
-      setAdminApiToken(subscription.adminApiToken || '');
+      setClientId(subscription.clientId || '');
+      setClientSecret(subscription.clientSecret || '');
       setStoreUrl(subscription.storeUrl || '');
       setConsumerKey(subscription.consumerKey || '');
       setConsumerSecret(subscription.consumerSecret || '');
@@ -90,8 +92,8 @@ export default function SubscriptionSettingsPanel({
         return;
       }
     } else if (ecommerceType === 'shopify') {
-      if (!shopDomain || !adminApiToken) {
-        setError('Shop Domain and Admin API Token are required for Shopify.');
+      if (!shopDomain || !clientId || !clientSecret) {
+        setError('Shop Domain, Client ID, and Client Secret are required for Shopify.');
         return;
       }
     } else if (ecommerceType === 'woocommerce') {
@@ -118,7 +120,8 @@ export default function SubscriptionSettingsPanel({
         updates.apiKey = customApiKey;
       } else if (ecommerceType === 'shopify') {
         updates.shopDomain = shopDomain;
-        updates.adminApiToken = adminApiToken;
+        updates.clientId = clientId;
+        updates.clientSecret = clientSecret;
       } else if (ecommerceType === 'woocommerce') {
         updates.storeUrl = storeUrl;
         updates.consumerKey = consumerKey;
@@ -259,18 +262,32 @@ export default function SubscriptionSettingsPanel({
                 />
               </div>
               <div>
-                <label
-                  htmlFor="adminApiToken"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Admin API Token
+                <label htmlFor="clientId" className="block text-sm font-medium text-gray-700 mb-2">
+                  Client ID
                 </label>
                 <input
                   type="text"
-                  id="adminApiToken"
-                  value={adminApiToken}
-                  onChange={(e) => setAdminApiToken(e.target.value)}
-                  placeholder="Shopify Admin API Token"
+                  id="clientId"
+                  value={clientId}
+                  onChange={(e) => setClientId(e.target.value)}
+                  placeholder="Your Shopify app client ID"
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="clientSecret"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Client Secret
+                </label>
+                <input
+                  type="password"
+                  id="clientSecret"
+                  value={clientSecret}
+                  onChange={(e) => setClientSecret(e.target.value)}
+                  placeholder="Your Shopify app client secret"
                   className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
                   required
                 />

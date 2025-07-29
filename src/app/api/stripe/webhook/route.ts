@@ -14,7 +14,9 @@ export async function POST(request: NextRequest) {
   // Check if Stripe is properly configured
   if (!stripe) {
     return NextResponse.json(
-      { error: 'Stripe is not properly configured. Please check your environment variables.' },
+      {
+        error: 'Stripe is not properly configured. Please check your environment variables.'
+      },
       { status: 500 }
     );
   }

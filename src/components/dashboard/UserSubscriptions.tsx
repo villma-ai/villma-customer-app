@@ -156,7 +156,8 @@ export default function UserSubscriptions({ userId }: UserSubscriptionsProps) {
                       subscription.apiKey) ||
                       (subscription.ecommerceType === 'shopify' &&
                         subscription.shopDomain &&
-                        subscription.adminApiToken) ||
+                        subscription.clientId &&
+                        subscription.clientSecret) ||
                       (subscription.ecommerceType === 'woocommerce' &&
                         subscription.storeUrl &&
                         subscription.consumerKey &&

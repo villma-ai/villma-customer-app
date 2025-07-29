@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getSubscriptionPlans, getUserProfile, isUserProfileComplete } from '@/lib/firestore';
 import { createCheckoutSession } from '@/lib/stripe-client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,10 +19,20 @@ export default function SubscriptionPlans({ userId }: SubscriptionPlansProps) {
   const [profileComplete, setProfileComplete] = useState<boolean | null>(null);
   const { currentUser } = useAuth();
 
+  const checkProfile = useCallback(async () => {
+    if (!userId) return;
+    try {
+      const profile = await getUserProfile(userId);
+      setProfileComplete(isUserProfileComplete(profile));
+    } catch {
+      setProfileComplete(false);
+    }
+  }, [userId]);
+
   useEffect(() => {
     loadPlans();
     checkProfile();
-  }, []);
+  }, [checkProfile]);
 
   async function loadPlans() {
     try {
@@ -32,16 +42,6 @@ export default function SubscriptionPlans({ userId }: SubscriptionPlansProps) {
       console.error('Error loading plans:', error);
     } finally {
       setLoading(false);
-    }
-  }
-
-  async function checkProfile() {
-    if (!userId) return;
-    try {
-      const profile = await getUserProfile(userId);
-      setProfileComplete(isUserProfileComplete(profile));
-    } catch {
-      setProfileComplete(false);
     }
   }
 

@@ -16,9 +16,9 @@ type ShopifyProductsResponse = {
 };
 
 export async function POST(req: NextRequest) {
-  const { shopDomain, adminApiToken, search } = await req.json();
+  const { shopDomain, accessToken, search } = await req.json();
 
-  if (!shopDomain || !adminApiToken || !search) {
+  if (!shopDomain || !accessToken || !search) {
     return new Response(JSON.stringify({ error: 'Missing required parameters' }), { status: 400 });
   }
 
@@ -40,14 +40,16 @@ export async function POST(req: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Shopify-Access-Token': adminApiToken
+        'X-Shopify-Access-Token': accessToken
       },
       body: JSON.stringify({ query })
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      return new Response(JSON.stringify({ error: errorText }), { status: response.status });
+      return new Response(JSON.stringify({ error: errorText }), {
+        status: response.status
+      });
     }
 
     const data: ShopifyProductsResponse = await response.json();

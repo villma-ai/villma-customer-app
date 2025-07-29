@@ -161,7 +161,8 @@ export async function updateUserSubscription(
       | 'apiBaseUrl'
       | 'apiKey'
       | 'shopDomain'
-      | 'adminApiToken'
+      | 'clientId'
+      | 'clientSecret'
       | 'storeUrl'
       | 'consumerKey'
       | 'consumerSecret'
@@ -298,7 +299,8 @@ export function isSubscriptionSettingsComplete(subscription: UserSubscription): 
         subscription.webshopUrl &&
           subscription.apiToken &&
           subscription.shopDomain &&
-          subscription.adminApiToken
+          subscription.clientId &&
+          subscription.clientSecret
       );
     case 'woocommerce':
       return Boolean(

@@ -13,26 +13,25 @@ import ProductSearchInput from './ProductSearchInput';
 import EnhancedProductList from './EnhancedProductList';
 import EditProductModal from './EditProductModal';
 
-interface ProductSearchProps {
+interface ProductSearchShopifyProps {
   subscriptionId: string;
 }
 
 interface SubscriptionDetails {
   ecommerceType: string;
   shopDomain?: string;
-  adminApiToken?: string;
-  // Add other fields for other platforms as needed
+  clientId?: string;
+  clientSecret?: string;
 }
 
-export default function ProductSearch({ subscriptionId }: ProductSearchProps) {
+export default function ProductSearchShopify({ subscriptionId }: ProductSearchShopifyProps) {
   const { currentUser } = useAuth();
   const [search, setSearch] = useState('');
   const [subscription, setSubscription] = useState<SubscriptionDetails | null>(null);
-  const [error, setError] = useState('');
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [addedProducts, setAddedProducts] = useState<UserProduct[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<UserProduct | null>(null);
   const [saving, setSaving] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   // Fetch subscription details from Firestore
   useEffect(() => {
@@ -43,13 +42,13 @@ export default function ProductSearch({ subscriptionId }: ProductSearchProps) {
           setSubscription({
             ecommerceType: sub.ecommerceType || '',
             shopDomain: sub.shopDomain || '',
-            adminApiToken: sub.adminApiToken || ''
+            clientId: sub.clientId || '',
+            clientSecret: sub.clientSecret || ''
           });
         } else {
           setSubscription(null);
         }
       } catch {
-        setError('Failed to fetch subscription details');
         setSubscription(null);
       }
     }
@@ -64,21 +63,22 @@ export default function ProductSearch({ subscriptionId }: ProductSearchProps) {
         const products = await getUserProducts(currentUser!.uid);
         setAddedProducts(products.filter((p) => p.userSubscriptionPlanId === subscriptionId));
       } catch {
-        setError('Failed to fetch added products');
+        // Handle error silently
       }
     }
     fetchProducts();
   }, [currentUser, subscriptionId]);
 
   // Use the custom hook for Shopify product search
-  const shopDomain = subscription?.ecommerceType === 'shopify' ? subscription.shopDomain || '' : '';
-  const adminApiToken =
-    subscription?.ecommerceType === 'shopify' ? subscription.adminApiToken || '' : '';
+  const shopDomain = subscription?.shopDomain || '';
+  const clientId = subscription?.clientId || '';
+  const clientSecret = subscription?.clientSecret || '';
+
   const {
     products,
     loading,
     error: shopifyError
-  } = useShopifyProducts(shopDomain, adminApiToken, search);
+  } = useShopifyProducts(shopDomain, clientId, clientSecret, search);
 
   const handleAddProduct = async (product: { id: string; title: string }) => {
     if (!currentUser) return;
@@ -99,7 +99,6 @@ export default function ProductSearch({ subscriptionId }: ProductSearchProps) {
       }
       setDropdownOpen(false);
     } catch (err) {
-      setError('Failed to add product');
       console.error('Failed to add product:', err);
     } finally {
       setSaving(false);
@@ -122,7 +121,7 @@ export default function ProductSearch({ subscriptionId }: ProductSearchProps) {
       }
       setSelectedProduct(null);
     } catch {
-      setError('Failed to update description');
+      // Handle error silently
     } finally {
       setSaving(false);
     }
@@ -133,11 +132,7 @@ export default function ProductSearch({ subscriptionId }: ProductSearchProps) {
   }
 
   if (subscription.ecommerceType !== 'shopify') {
-    return (
-      <div className="text-gray-500">
-        Product search is only available for Shopify subscriptions.
-      </div>
-    );
+    return <div className="text-gray-500">This component is only for Shopify subscriptions.</div>;
   }
 
   return (
@@ -148,7 +143,7 @@ export default function ProductSearch({ subscriptionId }: ProductSearchProps) {
         dropdownOpen={dropdownOpen}
         setDropdownOpen={setDropdownOpen}
         loading={loading}
-        error={error}
+        error={shopifyError}
         shopifyError={shopifyError}
         products={products}
         handleAddProduct={handleAddProduct}
