@@ -36,7 +36,16 @@ export async function POST(req: NextRequest) {
   `;
 
   try {
-    const response = await fetch(shopDomain, {
+    let cleanDomain = shopDomain.replace(/^https?:\/\//, '');
+
+    if (cleanDomain.includes('/admin/api/')) {
+      cleanDomain = cleanDomain.split('/admin/api/')[0];
+    }
+
+    const baseUrl = `https://${cleanDomain}/admin`;
+    const graphqlUrl = `${baseUrl}/api/2025-04/graphql.json`;
+
+    const response = await fetch(graphqlUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -47,7 +56,7 @@ export async function POST(req: NextRequest) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      return new Response(JSON.stringify({ error: errorText }), {
+      return new Response(JSON.stringify({ error: errorText + ' token:' + accessToken }), {
         status: response.status
       });
     }

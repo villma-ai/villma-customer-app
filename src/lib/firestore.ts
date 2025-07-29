@@ -47,8 +47,10 @@ function getFirestoreInstance() {
   const authInstance = auth();
   if (authInstance && authInstance.currentUser) {
     console.log('✅ User is authenticated:', authInstance.currentUser.uid);
+    console.log('✅ User email:', authInstance.currentUser.email);
   } else {
     console.warn('⚠️ User is not authenticated');
+    console.warn('⚠️ Auth instance:', authInstance);
   }
 
   return dbInstance;

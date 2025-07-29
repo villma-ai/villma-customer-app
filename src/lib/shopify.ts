@@ -19,37 +19,35 @@ export async function fetchShopifyAccessToken(
   // Check if we have a valid cached token
   const cached = tokenCache.get(cacheKey);
   if (cached && cached.expiresAt > now + 60000) {
-    // 1 minute buffer
     return cached.accessToken;
   }
 
   try {
-    const baseUrl = `https://${storeDomain}/admin`;
-    const tokenUrl = `${baseUrl}/oauth/access_token`;
-
-    const response = await fetch(tokenUrl, {
+    const response = await fetch('/api/shopify/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        client_id: clientId,
-        client_secret: clientSecret,
-        grant_type: 'client_credentials'
+        storeDomain,
+        clientId,
+        clientSecret
       })
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to fetch access token: ${errorText}`);
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to fetch access token');
     }
 
     const tokenData = await response.json();
-    const accessToken = tokenData.access_token;
+    const accessToken = tokenData.accessToken;
 
-    // Cache the token with expiration (Shopify tokens typically expire in 1 hour)
-    // If the response doesn't include expires_in, we'll assume 1 hour
-    const expiresIn = tokenData.expires_in || 3600; // Default to 1 hour
+    if (!accessToken) {
+      throw new Error('No access token received from Shopify');
+    }
+
+    const expiresIn = 3600;
     const expiresAt = now + expiresIn * 1000;
 
     tokenCache.set(cacheKey, {
@@ -59,7 +57,7 @@ export async function fetchShopifyAccessToken(
 
     return accessToken;
   } catch (error) {
-    console.error('Error fetching Shopify access token:', error);
+    console.error('❌ Error fetching Shopify access token:', error);
     throw new Error('Failed to fetch Shopify access token');
   }
 }
@@ -80,7 +78,7 @@ export async function fetchShopifyProducts(
   clientId: string,
   clientSecret: string,
   search: string
-): Promise<Array<{ id: string; title: string }>> {
+): Promise<Array<{ id: string; title: string; }>> {
   try {
     // Clear expired tokens first
     clearExpiredTokens();
