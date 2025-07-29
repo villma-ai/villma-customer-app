@@ -10,7 +10,7 @@ import {
   getDocs,
   Timestamp
 } from 'firebase/firestore';
-import { db } from './firebase';
+import { db, auth } from './firebase';
 import { UserProfile, SubscriptionPlan, UserSubscription } from '@villma/villma-ts-shared';
 
 // Utility function to convert Firestore Timestamps to Date objects
@@ -33,12 +33,24 @@ function convertTimestamps(data: Record<string, unknown>): Record<string, unknow
 
 // Helper function to get Firestore instance
 function getFirestoreInstance() {
+  console.log('🔍 Attempting to get Firestore instance...');
   const dbInstance = db();
   if (!dbInstance) {
+    console.error('❌ Firestore instance is null');
     throw new Error(
       'Firebase is not properly configured. Please check your environment variables.'
     );
   }
+  console.log('✅ Firestore instance obtained successfully');
+
+  // Check authentication status
+  const authInstance = auth();
+  if (authInstance && authInstance.currentUser) {
+    console.log('✅ User is authenticated:', authInstance.currentUser.uid);
+  } else {
+    console.warn('⚠️ User is not authenticated');
+  }
+
   return dbInstance;
 }
 
@@ -56,15 +68,26 @@ export async function createUserProfile(profile: Omit<UserProfile, 'createdAt' |
 }
 
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
-  const dbInstance = getFirestoreInstance();
-  const userRef = doc(dbInstance, 'users', uid);
-  const userSnap = await getDoc(userRef);
+  console.log('🔍 Fetching user profile for UID:', uid);
+  try {
+    const dbInstance = getFirestoreInstance();
+    console.log('📄 Creating document reference for users collection...');
+    const userRef = doc(dbInstance, 'users', uid);
+    console.log('🔍 Fetching document from Firestore...');
+    const userSnap = await getDoc(userRef);
+    console.log('📄 Document exists:', userSnap.exists());
 
-  if (userSnap.exists()) {
-    const data = userSnap.data();
-    return convertTimestamps(data) as unknown as UserProfile;
+    if (userSnap.exists()) {
+      const data = userSnap.data();
+      console.log('✅ User profile data retrieved successfully');
+      return convertTimestamps(data) as unknown as UserProfile;
+    }
+    console.log('⚠️ User profile not found');
+    return null;
+  } catch (error) {
+    console.error('❌ Error fetching user profile:', error);
+    throw error;
   }
-  return null;
 }
 
 export async function updateUserProfile(uid: string, updates: Partial<UserProfile>) {
@@ -273,12 +296,12 @@ export function isUserProfileComplete(profile: UserProfile | null): boolean {
   if (!profile) return false;
   return Boolean(
     profile.firstName &&
-      profile.lastName &&
-      profile.address &&
-      profile.address.street &&
-      profile.address.city &&
-      profile.address.postalCode &&
-      profile.address.country
+    profile.lastName &&
+    profile.address &&
+    profile.address.street &&
+    profile.address.city &&
+    profile.address.postalCode &&
+    profile.address.country
   );
 }
 
@@ -290,32 +313,32 @@ export function isSubscriptionSettingsComplete(subscription: UserSubscription): 
     case 'custom':
       return Boolean(
         subscription.webshopUrl &&
-          subscription.apiToken &&
-          subscription.apiBaseUrl &&
-          subscription.apiKey
+        subscription.apiToken &&
+        subscription.apiBaseUrl &&
+        subscription.apiKey
       );
     case 'shopify':
       return Boolean(
         subscription.webshopUrl &&
-          subscription.apiToken &&
-          subscription.shopDomain &&
-          subscription.clientId &&
-          subscription.clientSecret
+        subscription.apiToken &&
+        subscription.shopDomain &&
+        subscription.clientId &&
+        subscription.clientSecret
       );
     case 'woocommerce':
       return Boolean(
         subscription.webshopUrl &&
-          subscription.apiToken &&
-          subscription.storeUrl &&
-          subscription.consumerKey &&
-          subscription.consumerSecret
+        subscription.apiToken &&
+        subscription.storeUrl &&
+        subscription.consumerKey &&
+        subscription.consumerSecret
       );
     case 'prestashop':
       return Boolean(
         subscription.webshopUrl &&
-          subscription.apiToken &&
-          subscription.storeUrl &&
-          subscription.apiKey
+        subscription.apiToken &&
+        subscription.storeUrl &&
+        subscription.apiKey
       );
     default:
       return false;
