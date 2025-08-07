@@ -1,25 +1,23 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import {
-  User,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
+import { 
+  AuthUser, 
+  signOut as authSignOut, 
+  signInWithGoogle as authSignInWithGoogle,
   onAuthStateChanged,
-  UserCredential,
-  signInWithPopup,
-  GoogleAuthProvider
-} from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
+} from '@/lib/auth';
+import { initializeFirebase } from '@/lib/firebase';
 
 interface AuthContextType {
-  currentUser: User | null;
+  currentUser: AuthUser | null;
   loading: boolean;
-  signup: (email: string, password: string) => Promise<UserCredential>;
-  login: (email: string, password: string) => Promise<UserCredential>;
+  signup: (email: string, password: string) => Promise<AuthUser>;
+  login: (email: string, password: string) => Promise<AuthUser>;
   logout: () => Promise<void>;
-  signInWithGoogle: () => Promise<UserCredential | void>;
+  signInWithGoogle: () => Promise<AuthUser>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -33,64 +31,47 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   function signup(email: string, password: string) {
-    const authInstance = auth();
-    if (!authInstance) {
-      throw new Error(
-        'Firebase is not properly configured. Please check your environment variables.'
-      );
-    }
-    return createUserWithEmailAndPassword(authInstance, email, password);
+    return createUserWithEmailAndPassword(email, password);
   }
 
   function login(email: string, password: string) {
-    const authInstance = auth();
-    if (!authInstance) {
-      throw new Error(
-        'Firebase is not properly configured. Please check your environment variables.'
-      );
-    }
-    return signInWithEmailAndPassword(authInstance, email, password);
+    return signInWithEmailAndPassword(email, password);
   }
 
-  function logout() {
-    const authInstance = auth();
-    if (!authInstance) {
-      throw new Error(
-        'Firebase is not properly configured. Please check your environment variables.'
-      );
-    }
-    return signOut(authInstance);
+  async function logout() {
+    return authSignOut();
   }
 
-  function signInWithGoogle() {
-    const authInstance = auth();
-    if (!authInstance) {
-      throw new Error(
-        'Firebase is not properly configured. Please check your environment variables.'
-      );
-    }
-    const provider = new GoogleAuthProvider();
-    return signInWithPopup(authInstance, provider);
+  async function signInWithGoogle() {
+    return authSignInWithGoogle();
   }
 
   useEffect(() => {
-    const authInstance = auth();
-    if (!authInstance) {
-      console.warn('Firebase is not properly configured. Auth state monitoring disabled.');
-      setLoading(false);
-      return;
-    }
+    // Initialize Firebase and set up auth state listener
+    const initializeAuth = async () => {
+      try {
+        await initializeFirebase();
+        
+        // Listen to Firebase auth state changes
+        const unsubscribe = onAuthStateChanged((user) => {
+          console.log('🔍 AuthContext Debug - Firebase auth state changed:', user);
+          setCurrentUser(user);
+          setLoading(false);
+        });
 
-    const unsubscribe = onAuthStateChanged(authInstance, (user) => {
-      setCurrentUser(user);
-      setLoading(false);
-    });
+        return unsubscribe;
+      } catch (error) {
+        console.error('Failed to initialize Firebase:', error);
+        setLoading(false);
+        return () => {};
+      }
+    };
 
-    return unsubscribe;
+    initializeAuth();
   }, []);
 
   const value = {

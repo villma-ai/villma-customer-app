@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createUserSubscription } from '@/lib/firestore';
+import { createUserSubscription } from '@/lib/firestore-server';
 
 export async function GET() {
   try {

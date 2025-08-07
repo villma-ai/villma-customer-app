@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserSubscriptionsByStripeCustomer } from '@/lib/firestore';
+import { getUserSubscriptionsByStripeCustomer } from '@/lib/firestore-server';
 
 export async function POST(request: NextRequest) {
   try {

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { ConfigProvider } from '@/components/ConfigProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -44,7 +45,9 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
       </head>
       <body className={inter.className}>
-        <AuthProvider>{children}</AuthProvider>
+        <ConfigProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ConfigProvider>
       </body>
     </html>
   );

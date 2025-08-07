@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -13,8 +13,32 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [googleLoading, setGoogleLoading] = useState(false);
-  const { login, signInWithGoogle } = useAuth();
+  const { login, signInWithGoogle, currentUser } = useAuth();
   const router = useRouter();
+
+  // Handle redirect when user is authenticated
+  useEffect(() => {
+    if (currentUser) {
+      handleUserRedirect();
+    }
+  }, [currentUser]);
+
+  async function handleUserRedirect() {
+    if (!currentUser) return;
+    
+    try {
+      const profile = await getUserProfile(currentUser.uid);
+      if (isUserProfileComplete(profile)) {
+        router.push('/subscriptions');
+      } else {
+        router.push('/profile');
+      }
+    } catch (error) {
+      console.error('Error checking user profile:', error);
+      // If we can't get the profile, redirect to profile page to complete it
+      router.push('/profile');
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -23,16 +47,22 @@ export default function LoginForm() {
 
     try {
       await login(email, password);
-      // Fetch user profile and check completeness
-      const user = await getUserProfileFromAuth();
-      const profile = user ? await getUserProfile(user.uid) : null;
-      if (isUserProfileComplete(profile)) {
-        router.push('/subscriptions');
-      } else {
-        router.push('/profile');
-      }
+      // The redirect will be handled by the useEffect above
     } catch (error) {
-      setError('Invalid email or password. Please try again.');
+      if (error && typeof error === 'object' && 'message' in error) {
+        const authError = error as { message: string };
+        if (authError.message.includes('user not found') || authError.message.includes('no user')) {
+          setError('No account found with this email address.');
+        } else if (authError.message.includes('password') || authError.message.includes('invalid')) {
+          setError('Invalid email or password. Please try again.');
+        } else if (authError.message.includes('email')) {
+          setError('Please enter a valid email address.');
+        } else {
+          setError('Invalid email or password. Please try again.');
+        }
+      } else {
+        setError('Invalid email or password. Please try again.');
+      }
       console.error('Login error:', error);
     } finally {
       setLoading(false);
@@ -44,28 +74,24 @@ export default function LoginForm() {
     setError('');
     try {
       await signInWithGoogle();
-      // Fetch user profile and check completeness
-      const user = await getUserProfileFromAuth();
-      const profile = user ? await getUserProfile(user.uid) : null;
-      if (isUserProfileComplete(profile)) {
-        router.push('/subscriptions');
-      } else {
-        router.push('/profile');
-      }
+      // The redirect will be handled by the useEffect above when currentUser changes
     } catch (error) {
-      setError('Google sign-in failed.');
+      if (error && typeof error === 'object' && 'message' in error) {
+        const authError = error as { message: string };
+        if (authError.message.includes('popup closed') || authError.message.includes('cancelled')) {
+          setError('Google sign-in was cancelled.');
+        } else if (authError.message.includes('network') || authError.message.includes('connection')) {
+          setError('Network error. Please check your connection and try again.');
+        } else {
+          setError('Google sign-in failed. Please try again.');
+        }
+      } else {
+        setError('Google sign-in failed. Please try again.');
+      }
       console.error('Google sign-in error:', error);
     } finally {
       setGoogleLoading(false);
     }
-  }
-
-  // Helper to get the current user from Firebase Auth
-  async function getUserProfileFromAuth() {
-    // Use Firebase Auth directly to get the current user
-    const { auth } = await import('@/lib/firebase');
-    const authInstance = auth();
-    return authInstance ? authInstance.currentUser : null;
   }
 
   return (

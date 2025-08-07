@@ -4,15 +4,22 @@
  */
 
 interface RuntimeConfig {
-  // Firebase Configuration
-  firebase: {
-    apiKey: string;
-    authDomain: string;
+  // Google Cloud Platform Configuration
+  gcp: {
     projectId: string;
-    storageBucket: string;
-    messagingSenderId: string;
-    appId: string;
-    measurementId?: string;
+  };
+
+  // Firestore Configuration
+  firestore: {
+    projectId: string;
+    databaseName: string;
+    collections: {
+      users: string;
+      subscriptionPlans: string;
+      userSubscriptions: string;
+      webhookEvents: string;
+      userProducts: string;
+    };
   };
 
   // Stripe Configuration
@@ -32,14 +39,19 @@ interface RuntimeConfig {
 // Runtime configuration getter
 export function getRuntimeConfig(): RuntimeConfig {
   return {
-    firebase: {
-      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '',
-      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || '',
-      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
-      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
-      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '',
-      measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || ''
+    gcp: {
+      projectId: process.env.GOOGLE_CLOUD_PROJECT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLOUD_PROJECT_ID || ''
+    },
+    firestore: {
+      projectId: process.env.GOOGLE_CLOUD_PROJECT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLOUD_PROJECT_ID || '',
+      databaseName: process.env.FIRESTORE_DATABASE_NAME || 'default',
+      collections: {
+        users: process.env.FIRESTORE_COLLECTION_USERS || 'users',
+        subscriptionPlans: process.env.FIRESTORE_COLLECTION_SUBSCRIPTION_PLANS || 'subscriptionPlans',
+        userSubscriptions: process.env.FIRESTORE_COLLECTION_USER_SUBSCRIPTIONS || 'userSubscriptions',
+        webhookEvents: process.env.FIRESTORE_COLLECTION_WEBHOOK_EVENTS || 'webhookEvents',
+        userProducts: process.env.FIRESTORE_COLLECTION_USER_PRODUCTS || 'userProducts'
+      }
     },
     stripe: {
       publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
@@ -59,7 +71,8 @@ export function getRuntimeConfig(): RuntimeConfig {
 export function getClientConfig() {
   const config = getRuntimeConfig();
   return {
-    firebase: config.firebase,
+    gcp: config.gcp,
+    firestore: config.firestore,
     stripe: {
       publishableKey: config.stripe.publishableKey
     }
@@ -69,4 +82,45 @@ export function getClientConfig() {
 // Server-side configuration (includes secrets)
 export function getServerConfig() {
   return getRuntimeConfig();
+}
+
+// Dynamic configuration for runtime updates
+let dynamicConfig: Partial<RuntimeConfig> = {};
+
+// Function to update configuration at runtime
+export function updateRuntimeConfig(newConfig: Partial<RuntimeConfig>) {
+  dynamicConfig = { ...dynamicConfig, ...newConfig };
+}
+
+// Function to get configuration with runtime overrides
+export function getDynamicConfig(): RuntimeConfig {
+  const baseConfig = getRuntimeConfig();
+  return {
+    ...baseConfig,
+    ...dynamicConfig,
+    gcp: {
+      ...baseConfig.gcp,
+      ...dynamicConfig.gcp
+    },
+    firestore: {
+      ...baseConfig.firestore,
+      ...dynamicConfig.firestore
+    },
+    stripe: {
+      ...baseConfig.stripe,
+      ...dynamicConfig.stripe
+    }
+  };
+}
+
+// Client-side dynamic configuration
+export function getDynamicClientConfig() {
+  const config = getDynamicConfig();
+  return {
+    gcp: config.gcp,
+    firestore: config.firestore,
+    stripe: {
+      publishableKey: config.stripe.publishableKey
+    }
+  };
 }

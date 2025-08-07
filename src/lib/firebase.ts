@@ -1,85 +1,97 @@
-import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
-import { getClientConfig } from './runtime-config';
+import { initializeApp } from 'firebase/app';
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut as firebaseSignOut, User } from 'firebase/auth';
 
-// Lazy initialization of Firebase
-let app: FirebaseApp | null = null;
-let authInstance: Auth | null = null;
-let dbInstance: Firestore | null = null;
+// Firebase configuration will be loaded at runtime
+let firebaseConfig: any = null;
+let app: any = null;
+let auth: any = null;
+let googleProvider: any = null;
 
-function initializeFirebase() {
+// Initialize Firebase with runtime config
+export async function initializeFirebase() {
+  if (app) return; // Already initialized
+
   try {
-    if (app) return { app, auth: authInstance, db: dbInstance };
-
-    // Get runtime configuration
-    const config = getClientConfig();
-
-    // Check if we have valid Firebase configuration
-    if (!config.firebase.apiKey) {
-      console.warn('⚠️  Firebase not properly configured. Skipping initialization.');
-
-      return { app: null, auth: null, db: null };
+    // Fetch Firebase config from API
+    const response = await fetch('/api/config');
+    if (!response.ok) {
+      throw new Error('Failed to fetch Firebase config');
     }
-
-    // Firebase configuration
-    const firebaseConfig = {
+    
+    const config = await response.json();
+    firebaseConfig = {
       apiKey: config.firebase.apiKey,
       authDomain: config.firebase.authDomain,
-      projectId: config.firebase.projectId,
-      storageBucket: config.firebase.storageBucket,
-      messagingSenderId: config.firebase.messagingSenderId,
-      appId: config.firebase.appId,
-      measurementId: config.firebase.measurementId
     };
 
-    // Initialize Firebase only if not already initialized
-    if (!getApps().length) {
-      app = initializeApp(firebaseConfig);
-    } else {
-      app = getApps()[0];
-    }
+    // Initialize Firebase
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    googleProvider = new GoogleAuthProvider();
 
-    // Initialize Firebase services
-    authInstance = getAuth(app);
-    dbInstance = getFirestore(app);
-
-    return { app, auth: authInstance, db: dbInstance };
+    console.log('Firebase initialized successfully');
   } catch (error) {
-    console.error('Error initializing Firebase:', error);
-    return { app: null, auth: null, db: null };
+    console.error('Failed to initialize Firebase:', error);
+    throw error;
   }
 }
 
-// Export lazy-loaded instances
-export const auth = (): Auth | null => {
-  try {
-    const { auth } = initializeFirebase();
-    return auth;
-  } catch (error) {
-    console.error('Error getting auth instance:', error);
-    return null;
+// Get auth instance (initialize if needed)
+export async function getAuthInstance() {
+  if (!auth) {
+    await initializeFirebase();
   }
-};
+  return auth;
+}
 
-export const db = (): Firestore | null => {
-  try {
-    const { db } = initializeFirebase();
-    return db;
-  } catch (error) {
-    console.error('Error getting db instance:', error);
-    return null;
+// Get Google provider (initialize if needed)
+export async function getGoogleProvider() {
+  if (!googleProvider) {
+    await initializeFirebase();
   }
-};
+  return googleProvider;
+}
 
-const getFirebaseApp = (): FirebaseApp | null => {
+// Firebase User to AuthUser conversion
+export function convertFirebaseUser(firebaseUser: User | null) {
+  if (!firebaseUser) return null;
+  
+  return {
+    uid: firebaseUser.uid,
+    email: firebaseUser.email,
+    displayName: firebaseUser.displayName,
+    photoURL: firebaseUser.photoURL,
+    emailVerified: firebaseUser.emailVerified,
+  };
+}
+
+// Sign in with Google popup
+export async function signInWithGoogle() {
   try {
-    const { app } = initializeFirebase();
-    return app;
+    const authInstance = await getAuthInstance();
+    const provider = await getGoogleProvider();
+    const result = await signInWithPopup(authInstance, provider);
+    return convertFirebaseUser(result.user);
   } catch (error) {
-    console.error('Error getting app instance:', error);
-    return null;
+    console.error('Google sign-in error:', error);
+    throw error;
   }
-};
+}
 
-export default getFirebaseApp;
+// Sign out
+export async function signOut() {
+  try {
+    const authInstance = await getAuthInstance();
+    await firebaseSignOut(authInstance);
+  } catch (error) {
+    console.error('Sign out error:', error);
+    throw error;
+  }
+}
+
+// Listen to auth state changes
+export function onAuthStateChange(callback: (user: any) => void) {
+  return onAuthStateChanged(auth || getAuth(), (user) => {
+    callback(convertFirebaseUser(user));
+  });
+}

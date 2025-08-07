@@ -219,6 +219,20 @@ NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abcdef
 NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX  # Optional
 ```
 
+**Firestore Database Configuration (Optional):**
+
+```bash
+# Database name within the Firebase project (defaults to 'default' if not set)
+FIRESTORE_DATABASE_NAME=villma
+
+# Collection names (optional - defaults will be used if not set)
+FIRESTORE_COLLECTION_USERS=users
+FIRESTORE_COLLECTION_SUBSCRIPTION_PLANS=subscriptionPlans
+FIRESTORE_COLLECTION_USER_SUBSCRIPTIONS=userSubscriptions
+FIRESTORE_COLLECTION_WEBHOOK_EVENTS=webhookEvents
+FIRESTORE_COLLECTION_USER_PRODUCTS=userProducts
+```
+
 **Stripe Configuration:**
 
 ```bash

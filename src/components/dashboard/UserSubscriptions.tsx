@@ -23,7 +23,7 @@ export default function UserSubscriptions({ userId }: UserSubscriptionsProps) {
       const userSubs = await getUserSubscriptions(userId);
       setSubscriptions(userSubs);
     } catch (error) {
-      console.error('Error loading user data:', error);
+      console.error('❌ Error loading user data:', error);
     } finally {
       setLoading(false);
     }

@@ -12,42 +12,6 @@ interface EnvVar {
 }
 
 const requiredEnvVars: EnvVar[] = [
-  // Firebase Configuration (Client-side)
-  {
-    name: 'NEXT_PUBLIC_FIREBASE_API_KEY',
-    required: true,
-    description: 'Firebase API key for client-side authentication'
-  },
-  {
-    name: 'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
-    required: true,
-    description: 'Firebase authentication domain'
-  },
-  {
-    name: 'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
-    required: true,
-    description: 'Firebase project ID'
-  },
-  {
-    name: 'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
-    required: true,
-    description: 'Firebase storage bucket URL'
-  },
-  {
-    name: 'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
-    required: true,
-    description: 'Firebase messaging sender ID'
-  },
-  {
-    name: 'NEXT_PUBLIC_FIREBASE_APP_ID',
-    required: true,
-    description: 'Firebase app ID'
-  },
-  {
-    name: 'NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID',
-    required: false,
-    description: 'Firebase measurement ID (optional for analytics)'
-  },
 
   // Stripe Configuration
   {
@@ -141,14 +105,6 @@ export function validateEnvironmentVariables(): void {
     console.error('');
     console.error('Example .env.local file:');
     console.error('```');
-    console.error('# Firebase Configuration');
-    console.error('NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key');
-    console.error('NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com');
-    console.error('NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id');
-    console.error('NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com');
-    console.error('NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789');
-    console.error('NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abcdef');
-    console.error('NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX');
     console.error('');
     console.error('# Stripe Configuration');
     console.error('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...');
