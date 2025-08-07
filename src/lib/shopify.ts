@@ -9,11 +9,11 @@ const tokenCache = new Map<string, ShopifyTokenCache>();
 
 // Function to fetch/refresh Shopify access token with caching
 export async function fetchShopifyAccessToken(
-  storeDomain: string,
-  clientId: string,
-  clientSecret: string
+  webshopUrl: string,
+  shopifyClientId: string,
+  shopifyClientSecret: string
 ): Promise<string> {
-  const cacheKey = `${storeDomain}-${clientId}`;
+  const cacheKey = `${webshopUrl}-${shopifyClientId}`;
   const now = Date.now();
 
   // Check if we have a valid cached token
@@ -29,9 +29,9 @@ export async function fetchShopifyAccessToken(
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        storeDomain,
-        clientId,
-        clientSecret
+        storeDomain: webshopUrl,
+        clientId: shopifyClientId,
+        clientSecret: shopifyClientSecret
       })
     });
 
@@ -74,9 +74,9 @@ export function clearExpiredTokens(): void {
 
 // Updated function to fetch products with automatic token refresh
 export async function fetchShopifyProducts(
-  shopDomain: string,
-  clientId: string,
-  clientSecret: string,
+  webshopUrl: string,
+  shopifyClientId: string,
+  shopifyClientSecret: string,
   search: string
 ): Promise<Array<{ id: string; title: string; }>> {
   try {
@@ -84,13 +84,13 @@ export async function fetchShopifyProducts(
     clearExpiredTokens();
 
     // Get a fresh access token (will use cached if valid)
-    const accessToken = await fetchShopifyAccessToken(shopDomain, clientId, clientSecret);
+    const accessToken = await fetchShopifyAccessToken(webshopUrl, shopifyClientId, shopifyClientSecret);
 
     const response = await fetch('/api/shopify/products', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        shopDomain,
+        shopDomain: webshopUrl,
         accessToken: accessToken, // Use the fresh token
         search
       })

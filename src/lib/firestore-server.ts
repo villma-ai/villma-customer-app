@@ -44,9 +44,8 @@ export interface UserSubscription {
   ecommerceType?: 'shopify' | 'woocommerce' | 'prestashop' | 'custom';
   apiBaseUrl?: string;
   apiKey?: string;
-  shopDomain?: string;
-  clientId?: string;
-  clientSecret?: string;
+  shopifyClientId?: string;
+  shopifyClientSecret?: string;
   storeUrl?: string;
   consumerKey?: string;
   consumerSecret?: string;
@@ -233,9 +232,8 @@ export async function updateUserSubscription(
       | 'ecommerceType'
       | 'apiBaseUrl'
       | 'apiKey'
-      | 'shopDomain'
-      | 'clientId'
-      | 'clientSecret'
+      | 'shopifyClientId'
+      | 'shopifyClientSecret'
       | 'storeUrl'
       | 'consumerKey'
       | 'consumerSecret'
@@ -376,9 +374,8 @@ export function isSubscriptionSettingsComplete(subscription: UserSubscription): 
       return Boolean(
         subscription.webshopUrl &&
         subscription.apiToken &&
-        subscription.shopDomain &&
-        subscription.clientId &&
-        subscription.clientSecret
+        subscription.shopifyClientId &&
+        subscription.shopifyClientSecret
       );
     case 'woocommerce':
       return Boolean(

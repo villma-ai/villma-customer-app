@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { updateUserSubscription, generateApiToken } from '@/lib/firestore';
-import { UserSubscription } from '@villma/villma-ts-shared';
+import { UserSubscription } from '@/lib/firestore';
 
 const ECOMMERCE_TYPES = [
   { value: 'custom', label: 'Custom' },
@@ -28,9 +28,8 @@ export default function SubscriptionSettingsPanel({
   const [ecommerceType, setEcommerceType] = useState('');
   const [apiBaseUrl, setApiBaseUrl] = useState('');
   const [customApiKey, setCustomApiKey] = useState('');
-  const [shopDomain, setShopDomain] = useState('');
-  const [clientId, setClientId] = useState('');
-  const [clientSecret, setClientSecret] = useState('');
+  const [shopifyClientId, setShopifyClientId] = useState('');
+  const [shopifyClientSecret, setShopifyClientSecret] = useState('');
   const [storeUrl, setStoreUrl] = useState('');
   const [consumerKey, setConsumerKey] = useState('');
   const [consumerSecret, setConsumerSecret] = useState('');
@@ -43,9 +42,8 @@ export default function SubscriptionSettingsPanel({
       setEcommerceType(subscription.ecommerceType || '');
       setApiBaseUrl(subscription.apiBaseUrl || '');
       setCustomApiKey(subscription.apiKey || '');
-      setShopDomain(subscription.shopDomain || '');
-      setClientId(subscription.clientId || '');
-      setClientSecret(subscription.clientSecret || '');
+      setShopifyClientId(subscription.shopifyClientId || '');
+      setShopifyClientSecret(subscription.shopifyClientSecret || '');
       setStoreUrl(subscription.storeUrl || '');
       setConsumerKey(subscription.consumerKey || '');
       setConsumerSecret(subscription.consumerSecret || '');
@@ -92,8 +90,8 @@ export default function SubscriptionSettingsPanel({
         return;
       }
     } else if (ecommerceType === 'shopify') {
-      if (!shopDomain || !clientId || !clientSecret) {
-        setError('Shop Domain, Client ID, and Client Secret are required for Shopify.');
+      if (!webshopUrl || !shopifyClientId || !shopifyClientSecret) {
+        setError('Webshop URL, Client ID, and Client Secret are required for Shopify.');
         return;
       }
     } else if (ecommerceType === 'woocommerce') {
@@ -119,9 +117,8 @@ export default function SubscriptionSettingsPanel({
         updates.apiBaseUrl = apiBaseUrl;
         updates.apiKey = customApiKey;
       } else if (ecommerceType === 'shopify') {
-        updates.shopDomain = shopDomain;
-        updates.clientId = clientId;
-        updates.clientSecret = clientSecret;
+        updates.shopifyClientId = shopifyClientId;
+        updates.shopifyClientSecret = shopifyClientSecret;
       } else if (ecommerceType === 'woocommerce') {
         updates.storeUrl = storeUrl;
         updates.consumerKey = consumerKey;
@@ -200,7 +197,7 @@ export default function SubscriptionSettingsPanel({
               className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Enter the URL where your chatbot will be installed (optional)
+              Enter the URL where your chatbot will be installed
             </p>
           </div>
           {/* Dynamic Fields */}
@@ -245,31 +242,14 @@ export default function SubscriptionSettingsPanel({
           {ecommerceType === 'shopify' && (
             <>
               <div>
-                <label
-                  htmlFor="shopDomain"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Shop Domain
-                </label>
-                <input
-                  type="text"
-                  id="shopDomain"
-                  value={shopDomain}
-                  onChange={(e) => setShopDomain(e.target.value)}
-                  placeholder="yourstore.myshopify.com"
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="clientId" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="shopifyClientId" className="block text-sm font-medium text-gray-700 mb-2">
                   Client ID
                 </label>
                 <input
                   type="text"
-                  id="clientId"
-                  value={clientId}
-                  onChange={(e) => setClientId(e.target.value)}
+                  id="shopifyClientId"
+                  value={shopifyClientId}
+                  onChange={(e) => setShopifyClientId(e.target.value)}
                   placeholder="Your Shopify app client ID"
                   className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
                   required
@@ -277,16 +257,16 @@ export default function SubscriptionSettingsPanel({
               </div>
               <div>
                 <label
-                  htmlFor="clientSecret"
+                  htmlFor="shopifyClientSecret"
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
                   Client Secret
                 </label>
                 <input
                   type="password"
-                  id="clientSecret"
-                  value={clientSecret}
-                  onChange={(e) => setClientSecret(e.target.value)}
+                  id="shopifyClientSecret"
+                  value={shopifyClientSecret}
+                  onChange={(e) => setShopifyClientSecret(e.target.value)}
                   placeholder="Your Shopify app client secret"
                   className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
                   required
