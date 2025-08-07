@@ -25,7 +25,7 @@ export default function UserSubscriptionsPage() {
       processingRef.current.add(sessionId);
 
       // Process the session automatically
-      fetch('/api/admin/process-session', {
+      fetch('/api/stripe/process-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
