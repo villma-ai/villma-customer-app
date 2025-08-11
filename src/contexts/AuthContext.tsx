@@ -7,7 +7,8 @@ import {
   signInWithGoogle as authSignInWithGoogle,
   onAuthStateChanged,
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword
+  createUserWithEmailAndPassword,
+  checkAuthRedirectResult
 } from '@/lib/auth';
 import { initializeFirebase } from '@/lib/firebase';
 
@@ -56,9 +57,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         await initializeFirebase();
         
+        // Check for redirect result first
+        const redirectUser = await checkAuthRedirectResult();
+        if (redirectUser) {
+          setCurrentUser(redirectUser);
+          setLoading(false);
+          return;
+        }
+        
+        // Check if there's a stored user in localStorage (for email/password auth)
+        const storedUser = localStorage.getItem('authUser');
+        if (storedUser) {
+          try {
+            const user = JSON.parse(storedUser) as AuthUser;
+            setCurrentUser(user);
+            setLoading(false);
+            return;
+          } catch (error) {
+            console.error('Error parsing stored user:', error);
+            localStorage.removeItem('authUser'); // Clean up invalid data
+          }
+        }
+        
         // Listen to Firebase auth state changes
         const unsubscribe = onAuthStateChanged((user) => {
-          console.log('🔍 AuthContext Debug - Firebase auth state changed:', user);
           setCurrentUser(user);
           setLoading(false);
         });
@@ -74,13 +96,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initializeAuth();
   }, []);
 
+  // Monitor localStorage changes for email/password auth
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const storedUser = localStorage.getItem('authUser');
+      if (storedUser && !currentUser) {
+        try {
+          const user = JSON.parse(storedUser) as AuthUser;
+          setCurrentUser(user);
+        } catch (error) {
+          console.error('Error parsing stored user from storage event:', error);
+        }
+      }
+    };
+
+    // Listen for storage changes (when localStorage is updated from another tab/window)
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [currentUser]);
+
   const value = {
     currentUser,
     loading,
     signup,
     login,
     logout,
-    signInWithGoogle
+    signInWithGoogle,
   };
 
   return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;

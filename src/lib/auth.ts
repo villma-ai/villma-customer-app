@@ -2,7 +2,8 @@ import {
   signInWithGoogle as firebaseSignInWithGoogle, 
   signOut as firebaseSignOut, 
   onAuthStateChange,
-  convertFirebaseUser
+  convertFirebaseUser,
+  checkRedirectResult
 } from './firebase';
 
 // User interface to replace Firebase User
@@ -21,17 +22,29 @@ export interface AuthState {
   error: string | null;
 }
 
-// Sign in with Google using Firebase
+// Sign in with Google using Firebase (popup with redirect fallback)
 export async function signInWithGoogle(): Promise<AuthUser> {
   try {
     const user = await firebaseSignInWithGoogle();
+    
     if (!user) {
-      throw new Error('Failed to sign in with Google');
+      throw new Error('Google sign-in failed - no user returned');
     }
+    
     return user;
   } catch (error) {
     console.error('Google sign-in error:', error);
     throw error;
+  }
+}
+
+// Check for redirect result
+export async function checkAuthRedirectResult(): Promise<AuthUser | null> {
+  try {
+    return await checkRedirectResult();
+  } catch (error) {
+    console.error('Error checking redirect result:', error);
+    return null;
   }
 }
 
@@ -66,22 +79,34 @@ export async function signInWithEmailAndPassword(email: string, password: string
   }
   
   // Simulate user lookup (in real implementation, this would check against your database)
-  const existingUser = localStorage.getItem(`user_${email}`);
-  if (!existingUser) {
+  const existingUserData = localStorage.getItem(`user_${email}`);
+  
+  if (!existingUserData) {
     throw new Error('No account found with this email address.');
   }
   
-  // In a real implementation, you would verify the password hash
-  const user: AuthUser = {
-    uid: `email_${Date.now()}`,
-    email,
-    displayName: email.split('@')[0],
-    photoURL: null,
-    emailVerified: true,
-  };
+  try {
+    // Parse the stored user data
+    const existingUser = JSON.parse(existingUserData) as AuthUser;
+    
+    // In a real implementation, you would verify the password hash
+    // For now, we'll just use the stored user data
+    const user: AuthUser = {
+      uid: existingUser.uid,
+      email: existingUser.email,
+      displayName: existingUser.displayName,
+      photoURL: existingUser.photoURL,
+      emailVerified: existingUser.emailVerified,
+    };
 
-  localStorage.setItem('authUser', JSON.stringify(user));
-  return user;
+    // Set the current authenticated user
+    localStorage.setItem('authUser', JSON.stringify(user));
+    
+    return user;
+  } catch (error) {
+    console.error('Error parsing stored user data:', error);
+    throw new Error('Invalid user data. Please try registering again.');
+  }
 }
 
 export async function createUserWithEmailAndPassword(email: string, password: string): Promise<AuthUser> {
@@ -100,6 +125,7 @@ export async function createUserWithEmailAndPassword(email: string, password: st
   
   // Check if user already exists (in real implementation, this would check your database)
   const existingUser = localStorage.getItem(`user_${email}`);
+  
   if (existingUser) {
     throw new Error('An account with this email already exists.');
   }
@@ -116,5 +142,6 @@ export async function createUserWithEmailAndPassword(email: string, password: st
   // Store user for future login attempts (in real implementation, this would be in your database)
   localStorage.setItem(`user_${email}`, JSON.stringify(user));
   localStorage.setItem('authUser', JSON.stringify(user));
+  
   return user;
 }

@@ -78,7 +78,10 @@ export default function LoginForm() {
     } catch (error) {
       if (error && typeof error === 'object' && 'message' in error) {
         const authError = error as { message: string };
-        if (authError.message.includes('popup closed') || authError.message.includes('cancelled')) {
+        if (authError.message.includes('Redirect initiated')) {
+          // This is expected - the page is redirecting to Google
+          return; // Don't show error for expected redirect
+        } else if (authError.message.includes('popup closed') || authError.message.includes('cancelled')) {
           setError('Google sign-in was cancelled.');
         } else if (authError.message.includes('network') || authError.message.includes('connection')) {
           setError('Network error. Please check your connection and try again.');

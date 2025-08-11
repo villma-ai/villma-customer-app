@@ -128,7 +128,21 @@ export default function RegisterForm() {
       await signInWithGoogle();
       router.push('/profile');
     } catch (error) {
-      setError('Google sign-in failed.');
+      if (error && typeof error === 'object' && 'message' in error) {
+        const authError = error as { message: string };
+        if (authError.message.includes('Redirect initiated')) {
+          // This is expected - the page is redirecting to Google
+          return; // Don't show error for expected redirect
+        } else if (authError.message.includes('popup closed') || authError.message.includes('cancelled')) {
+          setError('Google sign-in was cancelled.');
+        } else if (authError.message.includes('network') || authError.message.includes('connection')) {
+          setError('Network error. Please check your connection and try again.');
+        } else {
+          setError('Google sign-in failed. Please try again.');
+        }
+      } else {
+        setError('Google sign-in failed. Please try again.');
+      }
       console.error('Google sign-in error:', error);
     } finally {
       setGoogleLoading(false);

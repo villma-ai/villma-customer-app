@@ -1,5 +1,14 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut as firebaseSignOut, User } from 'firebase/auth';
+import { 
+  getAuth, 
+  GoogleAuthProvider, 
+  signInWithRedirect, 
+  signInWithPopup,
+  getRedirectResult,
+  onAuthStateChanged, 
+  signOut as firebaseSignOut, 
+  User 
+} from 'firebase/auth';
 
 // Firebase configuration will be loaded at runtime
 let firebaseConfig: any = null;
@@ -28,8 +37,6 @@ export async function initializeFirebase() {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     googleProvider = new GoogleAuthProvider();
-
-    console.log('Firebase initialized successfully');
   } catch (error) {
     console.error('Failed to initialize Firebase:', error);
     throw error;
@@ -65,16 +72,48 @@ export function convertFirebaseUser(firebaseUser: User | null) {
   };
 }
 
-// Sign in with Google popup
+// Sign in with Google - try popup first, fallback to redirect
 export async function signInWithGoogle() {
   try {
     const authInstance = await getAuthInstance();
     const provider = await getGoogleProvider();
-    const result = await signInWithPopup(authInstance, provider);
-    return convertFirebaseUser(result.user);
+    
+    try {
+      // Try popup first (better user experience)
+      const result = await signInWithPopup(authInstance, provider);
+      return convertFirebaseUser(result.user);
+    } catch (popupError) {
+      // If popup fails (e.g., due to COOP), fall back to redirect
+      await signInWithRedirect(authInstance, provider);
+      
+      // The page will redirect to Google, so we don't return anything here
+      // The result will be handled when the user returns to the app
+      throw new Error('Redirect initiated - page will redirect to Google');
+    }
   } catch (error) {
     console.error('Google sign-in error:', error);
     throw error;
+  }
+}
+
+// Check for redirect result
+export async function checkRedirectResult() {
+  try {
+    const authInstance = await getAuthInstance();
+    const result = await getRedirectResult(authInstance);
+    if (result) {
+      return convertFirebaseUser(result.user);
+    }
+    return null;
+  } catch (error) {
+    // Only log errors that aren't related to no redirect result
+    if (error && typeof error === 'object' && 'code' in error) {
+      const firebaseError = error as { code: string };
+      if (firebaseError.code !== 'auth/no-auth-event') {
+        console.error('Error getting redirect result:', error);
+      }
+    }
+    return null;
   }
 }
 
