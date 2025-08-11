@@ -19,7 +19,13 @@ export async function GET() {
     );
   }
 
-  return NextResponse.json({
-    firebase: firebaseConfig
-  });
+  // Client-safe configuration
+  const clientConfig = {
+    firebase: firebaseConfig,
+    stripe: {
+      publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || ''
+    }
+  };
+
+  return NextResponse.json(clientConfig);
 }

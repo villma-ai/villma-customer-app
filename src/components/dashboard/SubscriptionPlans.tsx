@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getSubscriptionPlans, getUserProfile, isUserProfileComplete } from '@/lib/firestore';
 import { createCheckoutSession } from '@/lib/stripe-client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRuntimeConfig } from '@/hooks/useRuntimeConfig';
 import { SubscriptionPlan } from '@villma/villma-ts-shared';
 
 interface SubscriptionPlansProps {
@@ -18,6 +19,7 @@ export default function SubscriptionPlans({ userId }: SubscriptionPlansProps) {
   const [activeTab, setActiveTab] = useState<'monthly' | 'yearly'>('monthly');
   const [profileComplete, setProfileComplete] = useState<boolean | null>(null);
   const { currentUser } = useAuth();
+  const { config: runtimeConfig } = useRuntimeConfig();
 
   const checkProfile = useCallback(async () => {
     if (!userId) return;
@@ -46,7 +48,15 @@ export default function SubscriptionPlans({ userId }: SubscriptionPlansProps) {
   }
 
   async function handlePurchase(plan: SubscriptionPlan) {
-    if (!userId || !currentUser?.email) return;
+    if (!userId) {
+      throw new Error('User ID is required to purchase a plan');
+    }
+    if (!currentUser?.email) {
+      throw new Error('User email is required to purchase a plan');
+    }
+    if (!runtimeConfig?.stripe?.publishableKey) {
+      throw new Error('Stripe publishable key is not configured');
+    }
 
     try {
       setPurchasing(plan.id);
@@ -56,7 +66,8 @@ export default function SubscriptionPlans({ userId }: SubscriptionPlansProps) {
       await createCheckoutSession({
         planName: plan.name,
         billingCycle: plan.billingCycle,
-        customerEmail: currentUser.email
+        customerEmail: currentUser.email,
+        publishableKey: runtimeConfig.stripe.publishableKey
       });
 
       // Note: The user will be redirected to Stripe checkout

@@ -2,9 +2,6 @@ import { useState, useEffect } from 'react';
 import { getClientConfig } from '@/lib/runtime-config';
 
 interface RuntimeConfig {
-  gcp: {
-    projectId: string;
-  };
   firestore: {
     projectId: string;
     databaseName: string;

@@ -4,11 +4,6 @@
  */
 
 interface RuntimeConfig {
-  // Google Cloud Platform Configuration
-  gcp: {
-    projectId: string;
-  };
-
   // Firestore Configuration
   firestore: {
     projectId: string;
@@ -39,11 +34,8 @@ interface RuntimeConfig {
 // Runtime configuration getter
 export function getRuntimeConfig(): RuntimeConfig {
   return {
-    gcp: {
-      projectId: process.env.GOOGLE_CLOUD_PROJECT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLOUD_PROJECT_ID || ''
-    },
     firestore: {
-      projectId: process.env.GOOGLE_CLOUD_PROJECT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLOUD_PROJECT_ID || '',
+      projectId: process.env.GOOGLE_CLOUD_PROJECT_ID || '',
       databaseName: process.env.FIRESTORE_DATABASE_NAME || 'default',
       collections: {
         users: process.env.FIRESTORE_COLLECTION_USERS || 'users',
@@ -54,7 +46,7 @@ export function getRuntimeConfig(): RuntimeConfig {
       }
     },
     stripe: {
-      publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
+      publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '',
       secretKey: process.env.STRIPE_SECRET_KEY || '',
       webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
       products: {
@@ -71,7 +63,6 @@ export function getRuntimeConfig(): RuntimeConfig {
 export function getClientConfig() {
   const config = getRuntimeConfig();
   return {
-    gcp: config.gcp,
     firestore: config.firestore,
     stripe: {
       publishableKey: config.stripe.publishableKey
@@ -98,10 +89,6 @@ export function getDynamicConfig(): RuntimeConfig {
   return {
     ...baseConfig,
     ...dynamicConfig,
-    gcp: {
-      ...baseConfig.gcp,
-      ...dynamicConfig.gcp
-    },
     firestore: {
       ...baseConfig.firestore,
       ...dynamicConfig.firestore
@@ -117,7 +104,6 @@ export function getDynamicConfig(): RuntimeConfig {
 export function getDynamicClientConfig() {
   const config = getDynamicConfig();
   return {
-    gcp: config.gcp,
     firestore: config.firestore,
     stripe: {
       publishableKey: config.stripe.publishableKey
