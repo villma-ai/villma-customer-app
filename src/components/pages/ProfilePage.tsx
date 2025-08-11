@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { getUserProfile, createUserProfile } from '@/lib/firestore';
+import { getUserProfile, createUserProfile, UserProfile } from '@/lib/firestore';
 import ProfileForm from '@/components/dashboard/ProfileForm';
-import { UserProfile } from '@villma/villma-ts-shared';
 import { useRouter } from 'next/navigation';
 
 export default function ProfilePage() {

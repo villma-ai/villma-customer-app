@@ -7,6 +7,9 @@ export interface UserProfile {
   email: string;
   firstName: string;
   lastName: string;
+  phone?: string;
+  company?: string;
+  vatNumber?: string;
   address: {
     street: string;
     city: string;

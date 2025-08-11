@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { getSubscriptionPlans, getUserProfile, isUserProfileComplete } from '@/lib/firestore';
+import { getSubscriptionPlans, getUserProfile, isUserProfileComplete, SubscriptionPlan } from '@/lib/firestore';
 import { createCheckoutSession } from '@/lib/stripe-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRuntimeConfig } from '@/hooks/useRuntimeConfig';
-import { SubscriptionPlan } from '@villma/villma-ts-shared';
 
 interface SubscriptionPlansProps {
   userId: string;
