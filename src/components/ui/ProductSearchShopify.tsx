@@ -19,9 +19,9 @@ interface ProductSearchShopifyProps {
 
 interface SubscriptionDetails {
   ecommerceType: string;
-  shopDomain?: string;
-  clientId?: string;
-  clientSecret?: string;
+  webshopUrl?: string;
+  shopifyClientId?: string;
+  shopifyClientSecret?: string;
 }
 
 export default function ProductSearchShopify({ subscriptionId }: ProductSearchShopifyProps) {
@@ -41,9 +41,9 @@ export default function ProductSearchShopify({ subscriptionId }: ProductSearchSh
         if (sub) {
           setSubscription({
             ecommerceType: sub.ecommerceType || '',
-            shopDomain: sub.shopDomain || '',
-            clientId: sub.clientId || '',
-            clientSecret: sub.clientSecret || ''
+            webshopUrl: sub.webshopUrl || '',
+            shopifyClientId: sub.shopifyClientId || '',
+            shopifyClientSecret: sub.shopifyClientSecret || ''
           });
         } else {
           setSubscription(null);
@@ -70,15 +70,15 @@ export default function ProductSearchShopify({ subscriptionId }: ProductSearchSh
   }, [currentUser, subscriptionId]);
 
   // Use the custom hook for Shopify product search
-  const shopDomain = subscription?.shopDomain || '';
-  const clientId = subscription?.clientId || '';
-  const clientSecret = subscription?.clientSecret || '';
+  const webshopUrl = subscription?.webshopUrl || '';
+  const shopifyClientId = subscription?.shopifyClientId || '';
+  const shopifyClientSecret = subscription?.shopifyClientSecret || '';
 
   const {
     products,
     loading,
     error: shopifyError
-  } = useShopifyProducts(shopDomain, clientId, clientSecret, search);
+  } = useShopifyProducts(webshopUrl, shopifyClientId, shopifyClientSecret, search);
 
   const handleAddProduct = async (product: { id: string; title: string }) => {
     if (!currentUser) return;

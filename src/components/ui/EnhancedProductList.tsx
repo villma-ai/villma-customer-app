@@ -13,14 +13,14 @@ export default function EnhancedProductList({
 }: EnhancedProductListProps) {
   return (
     <div className="mt-4">
-      <div className="font-semibold mb-2 text-sm text-gray-700">
+      <div className="font-semibold mb-2 text-sm text-gray-900">
         Enhanced Products <HelpIconLink href="./help#enhanced-products" label="help" />
       </div>
       <ul className="space-y-2">
         {products.map((product) => (
           <li
             key={product.id}
-            className="p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-sky-50"
+            className="p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-sky-50 text-gray-900"
             onClick={() => onProductClick(product)}
           >
             <div className="flex items-center justify-between">

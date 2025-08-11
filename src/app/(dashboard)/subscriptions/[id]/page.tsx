@@ -19,7 +19,7 @@ export default async function SubscriptionDetailPage({ params }: SubscriptionDet
       >
         &larr; Back to My Subscriptions
       </Link>
-      <h1 className="text-3xl font-bold mb-4">Enhanced Products</h1>
+      <h1 className="text-3xl font-bold mb-4 text-gray-900">Enhanced Products</h1>
       <Suspense fallback={<div>Loading product search...</div>}>
         <ProductSearchWrapper subscriptionId={id} />
       </Suspense>

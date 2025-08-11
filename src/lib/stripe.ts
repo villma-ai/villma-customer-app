@@ -35,6 +35,15 @@ export const STRIPE_PRODUCTS = {
   EXTRA_YEARLY: config.stripe.products.extraYearly
 };
 
+// Debug logging for Stripe configuration
+console.log('🔍 Stripe configuration:', {
+  isConfigured: isStripeConfigured(),
+  products: STRIPE_PRODUCTS,
+  publishableKey: config.stripe.publishableKey ? 'Set' : 'Not set',
+  secretKey: config.stripe.secretKey ? 'Set' : 'Not set',
+  webhookSecret: config.stripe.webhookSecret ? 'Set' : 'Not set'
+});
+
 // Helper function to get Stripe price ID based on plan
 export function getStripePriceId(planName: string, billingCycle: string): string {
   const key =
@@ -60,6 +69,14 @@ export async function createCheckoutSession({
     throw new Error('Stripe is not properly configured. Please check your environment variables.');
   }
 
+  console.log('🔍 Creating checkout session with:', {
+    priceId,
+    customerEmail,
+    successUrl,
+    cancelUrl,
+    metadata
+  });
+
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
     payment_method_types: ['card'],
@@ -79,6 +96,9 @@ export async function createCheckoutSession({
     allow_promotion_codes: true,
     billing_address_collection: 'required'
   });
+
+  console.log('🔍 Checkout session created:', session.id);
+  console.log('🔍 Session metadata:', session.metadata);
 
   return session;
 }

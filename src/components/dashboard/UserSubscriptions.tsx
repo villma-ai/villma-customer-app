@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getUserSubscriptions, isSubscriptionSettingsComplete } from '@/lib/firestore';
 import SubscriptionSettingsPanel from '@/components/ui/SubscriptionSettingsPanel';
 import HelpIconLink from '@/components/ui/HelpIconLink';
-import { UserSubscription } from '@villma/villma-ts-shared';
+import { UserSubscription } from '@/lib/firestore';
 import { useRouter } from 'next/navigation';
 
 interface UserSubscriptionsProps {
@@ -23,7 +23,7 @@ export default function UserSubscriptions({ userId }: UserSubscriptionsProps) {
       const userSubs = await getUserSubscriptions(userId);
       setSubscriptions(userSubs);
     } catch (error) {
-      console.error('Error loading user data:', error);
+      console.error('❌ Error loading user data:', error);
     } finally {
       setLoading(false);
     }
@@ -155,9 +155,9 @@ export default function UserSubscriptions({ userId }: UserSubscriptionsProps) {
                       subscription.apiBaseUrl &&
                       subscription.apiKey) ||
                       (subscription.ecommerceType === 'shopify' &&
-                        subscription.shopDomain &&
-                        subscription.clientId &&
-                        subscription.clientSecret) ||
+                        subscription.webshopUrl &&
+                        subscription.shopifyClientId &&
+                        subscription.shopifyClientSecret) ||
                       (subscription.ecommerceType === 'woocommerce' &&
                         subscription.storeUrl &&
                         subscription.consumerKey &&

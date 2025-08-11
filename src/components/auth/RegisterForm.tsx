@@ -74,14 +74,20 @@ export default function RegisterForm() {
       // Validate form data with Zod
       const validatedData = registerSchema.parse(formData);
 
-      const userCredential = await signup(validatedData.email, validatedData.password);
+      const user = await signup(validatedData.email, validatedData.password);
 
       // Create user profile
       await createUserProfile({
-        uid: userCredential.user.uid,
+        uid: user.uid,
         email: validatedData.email,
         firstName: validatedData.firstName,
-        lastName: validatedData.lastName
+        lastName: validatedData.lastName,
+        address: {
+          street: '',
+          city: '',
+          postalCode: '',
+          country: ''
+        }
       });
 
       router.push('/profile');
@@ -94,13 +100,15 @@ export default function RegisterForm() {
           fieldErrors[field] = error.message;
         });
         setErrors(fieldErrors);
-      } else if (err && typeof err === 'object' && 'code' in err) {
-        // Handle Firebase auth errors
-        const firebaseError = err as { code: string };
-        if (firebaseError.code === 'auth/email-already-in-use') {
+      } else if (err && typeof err === 'object' && 'message' in err) {
+        // Handle authentication errors
+        const authError = err as { message: string };
+        if (authError.message.includes('email already exists') || authError.message.includes('already in use')) {
           setError('An account with this email already exists.');
-        } else if (firebaseError.code === 'auth/weak-password') {
+        } else if (authError.message.includes('weak password') || authError.message.includes('password')) {
           setError('Password is too weak. Please choose a stronger password.');
+        } else if (authError.message.includes('invalid email') || authError.message.includes('email')) {
+          setError('Please enter a valid email address.');
         } else {
           setError('Failed to create account. Please try again.');
         }
@@ -120,7 +128,21 @@ export default function RegisterForm() {
       await signInWithGoogle();
       router.push('/profile');
     } catch (error) {
-      setError('Google sign-in failed.');
+      if (error && typeof error === 'object' && 'message' in error) {
+        const authError = error as { message: string };
+        if (authError.message.includes('Redirect initiated')) {
+          // This is expected - the page is redirecting to Google
+          return; // Don't show error for expected redirect
+        } else if (authError.message.includes('popup closed') || authError.message.includes('cancelled')) {
+          setError('Google sign-in was cancelled.');
+        } else if (authError.message.includes('network') || authError.message.includes('connection')) {
+          setError('Network error. Please check your connection and try again.');
+        } else {
+          setError('Google sign-in failed. Please try again.');
+        }
+      } else {
+        setError('Google sign-in failed. Please try again.');
+      }
       console.error('Google sign-in error:', error);
     } finally {
       setGoogleLoading(false);
