@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserProducts, addUserProduct } from '@/lib/firestore-server';
+import logger from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get('userId');
   
-  console.log('🔍 API Debug - GET /api/user-products:', { userId });
+  logger.debug('GET /api/user-products', { userId });
   
   if (!userId) {
+    logger.warn('Missing userId parameter');
     return NextResponse.json(
       { error: 'User ID is required' },
       { status: 400 }
@@ -16,11 +18,17 @@ export async function GET(request: NextRequest) {
   
   try {
     const products = await getUserProducts(userId);
-    console.log('🔍 API Debug - User products result:', products);
+    logger.debug('User products retrieved successfully', { 
+      userId, 
+      productCount: products.length 
+    });
     
     return NextResponse.json(products);
   } catch (error) {
-    console.error('🔍 API Debug - Error fetching user products:', error);
+    logger.error('Error fetching user products', { 
+      userId, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
     return NextResponse.json(
       { error: 'Failed to fetch user products' },
       { status: 500 }
@@ -29,18 +37,25 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  console.log('🔍 API Debug - POST /api/user-products');
+  logger.debug('POST /api/user-products');
   
   try {
     const product = await request.json();
-    console.log('🔍 API Debug - Adding user product:', product);
+    logger.debug('Adding user product', { 
+      productId: product.id,
+      userId: product.userId 
+    });
     
     await addUserProduct(product);
-    console.log('🔍 API Debug - User product added successfully');
+    logger.debug('User product added successfully', { 
+      productId: product.id 
+    });
     
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('🔍 API Debug - Error adding user product:', error);
+    logger.error('Error adding user product', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
     return NextResponse.json(
       { error: 'Failed to add user product' },
       { status: 500 }

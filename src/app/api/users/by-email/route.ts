@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserProfileByEmail } from '@/lib/firestore-server';
+import logger from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const email = searchParams.get('email');
   
-  console.log('🔍 API Debug - GET /api/users/by-email:', { email });
+  logger.debug('GET /api/users/by-email:', { email });
   
   if (!email) {
     return NextResponse.json(
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
   
   try {
     const userProfile = await getUserProfileByEmail(email);
-    console.log('🔍 API Debug - User profile by email result:', userProfile);
+    logger.debug('User profile by email result:', userProfile);
     
     if (!userProfile) {
       return NextResponse.json(null, { status: 404 });
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
     
     return NextResponse.json(userProfile);
   } catch (error) {
-    console.error('🔍 API Debug - Error fetching user profile by email:', error);
+    logger.error('Error fetching user profile by email:', error);
     return NextResponse.json(
       { error: 'Failed to fetch user profile by email' },
       { status: 500 }

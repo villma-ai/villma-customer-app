@@ -1,5 +1,11 @@
 import { Firestore, DocumentData, QueryDocumentSnapshot, Timestamp } from '@google-cloud/firestore';
 import { getClientConfig } from './runtime-config';
+import logger from './logger';
+
+// Module-level singleton Firestore instance
+let firestoreInstance: Firestore | null = null;
+let isInitializing = false;
+let initPromise: Promise<Firestore> | null = null;
 
 // Local type definitions (replace with proper types when @villma/villma-ts-shared is available)
 export interface UserProfile {
@@ -84,8 +90,33 @@ function convertTimestamps(data: Record<string, unknown>): Record<string, unknow
   return converted;
 }
 
-// Helper function to get Firestore instance for server-side operations
-function getFirestoreInstance(): Firestore {
+// Helper function to get Firestore instance for server-side operations (singleton pattern)
+async function getFirestoreInstance(): Promise<Firestore> {
+  // Return existing instance if already initialized
+  if (firestoreInstance) {
+    return firestoreInstance;
+  }
+
+  // If already initializing, wait for the existing promise
+  if (isInitializing && initPromise) {
+    return initPromise;
+  }
+
+  // Start initialization
+  isInitializing = true;
+  initPromise = initializeFirestore();
+  
+  try {
+    firestoreInstance = await initPromise;
+    return firestoreInstance;
+  } finally {
+    isInitializing = false;
+    initPromise = null;
+  }
+}
+
+// Separate function to handle the actual initialization
+async function initializeFirestore(): Promise<Firestore> {
   try {
     // Get runtime configuration
     const config = getClientConfig();
@@ -97,18 +128,25 @@ function getFirestoreInstance(): Firestore {
     };
 
     // Initialize Firestore
-    const firestore = new Firestore(firestoreOptions);
-    console.log('🔗 Connected to Firestore database:', config.firestore.databaseName);
-    return firestore;
+    const instance = new Firestore(firestoreOptions);
+    
+    logger.info('🔗 Connected to Firestore database', { 
+      databaseName: config.firestore.databaseName,
+      projectId: config.firestore.projectId 
+    });
+    
+    return instance;
   } catch (error) {
-    console.error('❌ Failed to initialize Firestore:', error);
+    logger.error('❌ Failed to initialize Firestore', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
     throw error;
   }
 }
 
 // User Profile Functions
 export async function createUserProfile(profile: Omit<UserProfile, 'createdAt' | 'updatedAt'>) {
-  const dbInstance = getFirestoreInstance();
+  const dbInstance = await getFirestoreInstance();
   const userRef = dbInstance.collection(getCollectionName('users')).doc(profile.uid);
   const now = new Date();
 
@@ -119,11 +157,11 @@ export async function createUserProfile(profile: Omit<UserProfile, 'createdAt' |
     updatedAt: now
   }, { merge: true });
 
-  console.log('✅ User profile created/updated successfully');
+  logger.info('✅ User profile created/updated successfully', { userId: profile.uid });
 }
 
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
-  const dbInstance = getFirestoreInstance();
+  const dbInstance = await getFirestoreInstance();
   const userRef = dbInstance.collection(getCollectionName('users')).doc(uid);
   const userDoc = await userRef.get();
 
@@ -136,8 +174,8 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
 }
 
 export async function updateUserProfile(uid: string, updates: Partial<UserProfile>) {
-  console.log('🔍 Updating user profile for UID:', uid, 'with updates:', updates);
-  const dbInstance = getFirestoreInstance();
+  logger.info('🔍 Updating user profile', { uid, updates });
+  const dbInstance = await getFirestoreInstance();
   const userRef = dbInstance.collection(getCollectionName('users')).doc(uid);
   
   const updateData = {
@@ -145,14 +183,14 @@ export async function updateUserProfile(uid: string, updates: Partial<UserProfil
     updatedAt: new Date()
   };
   
-  console.log('🔍 Updating document with data:', updateData);
+  logger.debug('🔍 Updating document with data', { uid, updateData });
   await userRef.update(updateData);
-  console.log('✅ User profile updated successfully');
+  logger.info('✅ User profile updated successfully', { uid });
 }
 
 // Subscription Plan Functions
 export async function getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
-  const dbInstance = getFirestoreInstance();
+  const dbInstance = await getFirestoreInstance();
   const plansRef = dbInstance.collection(getCollectionName('subscriptionPlans'));
   const plansSnap = await plansRef.get();
 
@@ -165,7 +203,7 @@ export async function getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
 export async function createUserSubscription(
   subscription: Omit<UserSubscription, 'id' | 'createdAt' | 'updatedAt'>
 ) {
-  const dbInstance = getFirestoreInstance();
+  const dbInstance = await getFirestoreInstance();
   const subscriptionRef = dbInstance.collection(getCollectionName('userSubscriptions'));
   const now = new Date();
 
@@ -175,12 +213,15 @@ export async function createUserSubscription(
     updatedAt: now
   });
 
-  console.log('✅ User subscription created with ID:', docRef.id);
+  logger.info('✅ User subscription created', { 
+    subscriptionId: docRef.id,
+    userId: subscription.userId 
+  });
   return docRef.id;
 }
 
 export async function getUserSubscriptions(userId: string): Promise<UserSubscription[]> {
-  const dbInstance = getFirestoreInstance();
+  const dbInstance = await getFirestoreInstance();
   const subscriptionsRef = dbInstance.collection(getCollectionName('userSubscriptions'));
   const q = subscriptionsRef.where('userId', '==', userId);
   const subscriptionsSnap = await q.get();
@@ -195,7 +236,7 @@ export async function getUserSubscriptions(userId: string): Promise<UserSubscrip
 export async function getUserSubscriptionsByStripeCustomer(
   stripeCustomerId: string
 ): Promise<UserSubscription[]> {
-  const dbInstance = getFirestoreInstance();
+  const dbInstance = await getFirestoreInstance();
   const subscriptionsRef = dbInstance.collection(getCollectionName('userSubscriptions'));
   const q = subscriptionsRef.where('stripeCustomerId', '==', stripeCustomerId);
   const subscriptionsSnap = await q.get();
@@ -208,7 +249,7 @@ export async function getUserSubscriptionsByStripeCustomer(
 
 // Get user profile by email
 export async function getUserProfileByEmail(email: string): Promise<UserProfile | null> {
-  const dbInstance = getFirestoreInstance();
+  const dbInstance = await getFirestoreInstance();
   const usersRef = dbInstance.collection(getCollectionName('users'));
   const q = usersRef.where('email', '==', email);
   const userSnap = await q.get();
@@ -248,7 +289,7 @@ export async function updateUserSubscription(
     >
   >
 ) {
-  const dbInstance = getFirestoreInstance();
+  const dbInstance = await getFirestoreInstance();
   const subscriptionRef = dbInstance.collection(getCollectionName('userSubscriptions')).doc(subscriptionId);
   await subscriptionRef.update({
     ...updates,
@@ -268,7 +309,7 @@ export function generateApiToken(): string {
 
 // Webhook event tracking to prevent duplicates
 export async function isWebhookEventProcessed(eventId: string): Promise<boolean> {
-  const dbInstance = getFirestoreInstance();
+  const dbInstance = await getFirestoreInstance();
   const eventsRef = dbInstance.collection(getCollectionName('webhookEvents'));
   const q = eventsRef.where('eventId', '==', eventId);
   const eventSnap = await q.get();
@@ -276,7 +317,7 @@ export async function isWebhookEventProcessed(eventId: string): Promise<boolean>
 }
 
 export async function markWebhookEventProcessed(eventId: string): Promise<void> {
-  const dbInstance = getFirestoreInstance();
+  const dbInstance = await getFirestoreInstance();
   const eventsRef = dbInstance.collection(getCollectionName('webhookEvents'));
   await eventsRef.add({
     eventId,
@@ -287,7 +328,7 @@ export async function markWebhookEventProcessed(eventId: string): Promise<void> 
 export async function getUserSubscriptionById(
   subscriptionId: string
 ): Promise<UserSubscription | null> {
-  const dbInstance = getFirestoreInstance();
+  const dbInstance = await getFirestoreInstance();
   const subscriptionRef = dbInstance.collection(getCollectionName('userSubscriptions')).doc(subscriptionId);
   const subscriptionSnap = await subscriptionRef.get();
   if (subscriptionSnap.exists) {
@@ -313,7 +354,7 @@ export async function addUserProduct(
     description?: string;
   }
 ) {
-  const dbInstance = getFirestoreInstance();
+  const dbInstance = await getFirestoreInstance();
   const productsRef = dbInstance.collection(getCollectionName('userProducts'));
   const now = new Date();
   await productsRef.doc(product.id).set({
@@ -328,7 +369,7 @@ export async function addUserProduct(
 }
 
 export async function getUserProducts(userId: string): Promise<UserProduct[]> {
-  const dbInstance = getFirestoreInstance();
+  const dbInstance = await getFirestoreInstance();
   const productsRef = dbInstance.collection(getCollectionName('userProducts'));
   const q = productsRef.where('userId', '==', userId);
   const productsSnap = await q.get();
@@ -339,7 +380,7 @@ export async function getUserProducts(userId: string): Promise<UserProduct[]> {
 }
 
 export async function updateUserProductDescription(productId: string, description: string) {
-  const dbInstance = getFirestoreInstance();
+  const dbInstance = await getFirestoreInstance();
   const productRef = dbInstance.collection(getCollectionName('userProducts')).doc(productId);
   await productRef.update({
     description,
@@ -402,7 +443,7 @@ export function isSubscriptionSettingsComplete(subscription: UserSubscription): 
 
 // Check if subscription already exists by Stripe subscription ID
 export async function getSubscriptionByStripeId(stripeSubscriptionId: string): Promise<UserSubscription | null> {
-  const dbInstance = getFirestoreInstance();
+  const dbInstance = await getFirestoreInstance();
   const subscriptionsRef = dbInstance.collection(getCollectionName('userSubscriptions'));
   const q = subscriptionsRef.where('stripeSubscriptionId', '==', stripeSubscriptionId);
   const subscriptionsSnap = await q.get();

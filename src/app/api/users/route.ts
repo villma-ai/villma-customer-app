@@ -1,19 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createUserProfile } from '@/lib/firestore-server';
+import logger from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
-  console.log('🔍 API Debug - POST /api/users');
+  logger.debug('POST /api/users');
   
   try {
     const userProfile = await request.json();
-    console.log('🔍 API Debug - Creating user profile:', userProfile);
+    logger.debug('Creating user profile', { 
+      userId: userProfile.uid,
+      email: userProfile.email 
+    });
     
     await createUserProfile(userProfile);
-    console.log('🔍 API Debug - User profile created successfully');
+    logger.debug('User profile created successfully', { 
+      userId: userProfile.uid 
+    });
     
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('🔍 API Debug - Error creating user profile:', error);
+    logger.error('Error creating user profile', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
     return NextResponse.json(
       { error: 'Failed to create user profile' },
       { status: 500 }

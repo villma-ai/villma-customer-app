@@ -172,7 +172,7 @@ export default function SubscriptionSettingsPanel({
               id="ecommerceType"
               value={ecommerceType}
               onChange={(e) => setEcommerceType(e.target.value)}
-              className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
+              className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm text-gray-900"
               required
             >
               <option value="">Select platform</option>
@@ -194,7 +194,7 @@ export default function SubscriptionSettingsPanel({
               value={webshopUrl}
               onChange={(e) => setWebshopUrl(e.target.value)}
               placeholder="https://your-webshop.com"
-              className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
+              className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm text-gray-900"
             />
             <p className="text-xs text-gray-500 mt-1">
               Enter the URL where your chatbot will be installed
@@ -216,7 +216,7 @@ export default function SubscriptionSettingsPanel({
                   value={apiBaseUrl}
                   onChange={(e) => setApiBaseUrl(e.target.value)}
                   placeholder="https://api.yourshop.com"
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm text-gray-900"
                   required
                 />
               </div>
@@ -233,7 +233,7 @@ export default function SubscriptionSettingsPanel({
                   value={customApiKey}
                   onChange={(e) => setCustomApiKey(e.target.value)}
                   placeholder="Your API Key"
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm text-gray-900"
                   required
                 />
               </div>
@@ -251,7 +251,7 @@ export default function SubscriptionSettingsPanel({
                   value={shopifyClientId}
                   onChange={(e) => setShopifyClientId(e.target.value)}
                   placeholder="Your Shopify app client ID"
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm text-gray-900"
                   required
                 />
               </div>
@@ -268,7 +268,7 @@ export default function SubscriptionSettingsPanel({
                   value={shopifyClientSecret}
                   onChange={(e) => setShopifyClientSecret(e.target.value)}
                   placeholder="Your Shopify app client secret"
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm text-gray-900"
                   required
                 />
               </div>
@@ -286,7 +286,7 @@ export default function SubscriptionSettingsPanel({
                   value={storeUrl}
                   onChange={(e) => setStoreUrl(e.target.value)}
                   placeholder="https://yourstore.com"
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm text-gray-900"
                   required
                 />
               </div>
@@ -303,7 +303,7 @@ export default function SubscriptionSettingsPanel({
                   value={consumerKey}
                   onChange={(e) => setConsumerKey(e.target.value)}
                   placeholder="WooCommerce Consumer Key"
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm text-gray-900"
                   required
                 />
               </div>
@@ -320,7 +320,7 @@ export default function SubscriptionSettingsPanel({
                   value={consumerSecret}
                   onChange={(e) => setConsumerSecret(e.target.value)}
                   placeholder="WooCommerce Consumer Secret"
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm text-gray-900"
                   required
                 />
               </div>
@@ -338,7 +338,7 @@ export default function SubscriptionSettingsPanel({
                   value={storeUrl}
                   onChange={(e) => setStoreUrl(e.target.value)}
                   placeholder="https://yourstore.com"
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm text-gray-900"
                   required
                 />
               </div>
@@ -355,7 +355,7 @@ export default function SubscriptionSettingsPanel({
                   value={prestaApiKey}
                   onChange={(e) => setPrestaApiKey(e.target.value)}
                   placeholder="PrestaShop API Key"
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm text-gray-900"
                   required
                 />
               </div>
@@ -374,7 +374,7 @@ export default function SubscriptionSettingsPanel({
                   value={apiToken}
                   onChange={(e) => setApiToken(e.target.value)}
                   placeholder="Generate a token"
-                  className="flex-1 px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm font-mono"
+                  className="flex-1 px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm font-mono Enhanced Products"
                   readOnly
                 />
                 <button
