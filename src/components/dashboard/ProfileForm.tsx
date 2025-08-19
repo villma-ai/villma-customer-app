@@ -224,7 +224,7 @@ export default function ProfileForm({ userProfile, onProfileUpdate }: ProfileFor
                 id="firstName"
                 value={formData.firstName}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition duration-200 ${
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition duration-200 text-gray-900 placeholder-gray-500 ${
                   errors.firstName ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
@@ -241,7 +241,7 @@ export default function ProfileForm({ userProfile, onProfileUpdate }: ProfileFor
                 id="lastName"
                 value={formData.lastName}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition duration-200 ${
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition duration-200 text-gray-900 placeholder-gray-500 ${
                   errors.lastName ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
@@ -258,7 +258,7 @@ export default function ProfileForm({ userProfile, onProfileUpdate }: ProfileFor
                 id="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition duration-200 ${
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition duration-200 text-gray-900 placeholder-gray-500 ${
                   errors.phone ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
@@ -298,7 +298,7 @@ export default function ProfileForm({ userProfile, onProfileUpdate }: ProfileFor
                 id="company"
                 value={formData.company}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition duration-200 ${
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition duration-200 text-gray-900 placeholder-gray-500 ${
                   errors.company ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
@@ -315,7 +315,7 @@ export default function ProfileForm({ userProfile, onProfileUpdate }: ProfileFor
                 id="vatNumber"
                 value={formData.vatNumber}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition duration-200 ${
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition duration-200 text-gray-900 placeholder-gray-500 ${
                   errors.vatNumber ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
@@ -364,7 +364,7 @@ export default function ProfileForm({ userProfile, onProfileUpdate }: ProfileFor
                 id="address.street"
                 value={formData.address.street}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition duration-200 ${
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition duration-200 text-gray-900 placeholder-gray-500 ${
                   errors.address?.street ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
@@ -386,7 +386,7 @@ export default function ProfileForm({ userProfile, onProfileUpdate }: ProfileFor
                 id="address.city"
                 value={formData.address.city}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition duration-200 ${
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition duration-200 text-gray-900 placeholder-gray-500 ${
                   errors.address?.city ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
@@ -408,7 +408,7 @@ export default function ProfileForm({ userProfile, onProfileUpdate }: ProfileFor
                 id="address.postalCode"
                 value={formData.address.postalCode}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition duration-200 ${
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition duration-200 text-gray-900 placeholder-gray-500 ${
                   errors.address?.postalCode ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
@@ -430,7 +430,7 @@ export default function ProfileForm({ userProfile, onProfileUpdate }: ProfileFor
                 id="address.country"
                 value={formData.address.country}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition duration-200 ${
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition duration-200 text-gray-900 placeholder-gray-500 ${
                   errors.address?.country ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
