@@ -1,13 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe, STRIPE_CONFIG } from '@/lib/stripe';
-import { createUserSubscription, updateUserSubscription, getUserSubscriptionsByStripeCustomer, getUserProfileByEmail, isWebhookEventProcessed, markWebhookEventProcessed } from '@/lib/firestore';
+import {
+  createUserSubscription,
+  updateUserSubscription,
+  getUserSubscriptionsByStripeCustomer,
+  getUserProfileByEmail,
+  isWebhookEventProcessed,
+  markWebhookEventProcessed
+} from '@/lib/firestore-server';
 import Stripe from 'stripe';
+
+export async function GET() {
+  return NextResponse.json({ 
+    message: 'Webhook endpoint is accessible',
+    timestamp: new Date().toISOString(),
+    stripeConfigured: !!stripe
+  });
+}
 
 export async function POST(request: NextRequest) {
   // Check if Stripe is properly configured
   if (!stripe) {
+    console.error('❌ Stripe is not properly configured');
     return NextResponse.json(
-      { error: 'Stripe is not properly configured. Please check your environment variables.' },
+      {
+        error: 'Stripe is not properly configured. Please check your environment variables.'
+      },
       { status: 500 }
     );
   }
@@ -16,10 +34,8 @@ export async function POST(request: NextRequest) {
   const signature = request.headers.get('stripe-signature');
 
   if (!signature) {
-    return NextResponse.json(
-      { error: 'Missing stripe signature' },
-      { status: 400 }
-    );
+    console.error('❌ Missing stripe signature');
+    return NextResponse.json({ error: 'Missing stripe signature' }, { status: 400 });
   }
 
   let event: Stripe.Event;
@@ -27,19 +43,16 @@ export async function POST(request: NextRequest) {
   try {
     event = stripe.webhooks.constructEvent(body, signature, STRIPE_CONFIG.webhookSecret);
   } catch (err) {
-    console.error('Webhook signature verification failed:', err);
-    return NextResponse.json(
-      { error: 'Invalid signature' },
-      { status: 400 }
-    );
+    console.error('❌ Webhook signature verification failed:', err);
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
-  console.log('Received webhook event:', event.type, 'ID:', event.id);
+  console.log('📨 Received webhook event:', event.type, 'ID:', event.id);
 
   // Check if we've already processed this webhook event
   const alreadyProcessed = await isWebhookEventProcessed(event.id);
   if (alreadyProcessed) {
-    console.log('Webhook event already processed, skipping:', event.id);
+    console.log('⏭️ Webhook event already processed, skipping:', event.id);
     return NextResponse.json({ received: true });
   }
 
@@ -62,25 +75,24 @@ export async function POST(request: NextRequest) {
         break;
 
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        console.log(`ℹ️ Unhandled event type: ${event.type}`);
     }
 
     // Mark this webhook event as processed
     await markWebhookEventProcessed(event.id);
+    console.log('✅ Webhook event processed successfully');
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error('Webhook handler error:', error);
-    return NextResponse.json(
-      { error: 'Webhook handler failed' },
-      { status: 500 }
-    );
+    console.error('❌ Webhook handler error:', error);
+    return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 });
   }
 }
 
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
-  console.log('Checkout session completed:', session.id);
-  console.log('Session data:', JSON.stringify(session, null, 2));
+  console.log('🔍 Checkout session completed:', session.id);
+  console.log('🔍 Session data:', JSON.stringify(session, null, 2));
+  console.log('🔍 Session metadata:', session.metadata);
 
   if (!stripe) {
     console.error('Stripe is not properly configured');
@@ -91,20 +103,21 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     // Get the subscription from the session
     if (session.subscription && typeof session.subscription === 'string') {
       const subscription = await stripe.subscriptions.retrieve(session.subscription);
-      console.log('Retrieved subscription:', subscription.id);
+      console.log('🔍 Retrieved subscription:', subscription.id);
+      console.log('🔍 Subscription metadata:', subscription.metadata);
 
       await handleSubscriptionCreated(subscription);
     } else {
-      console.log('No subscription found in session');
+      console.log('🔍 No subscription found in session');
     }
   } catch (error) {
-    console.error('Error handling checkout session:', error);
+    console.error('🔍 Error handling checkout session:', error);
   }
 }
 
 async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
-  console.log('Subscription created:', subscription.id);
-  console.log('Subscription data:', JSON.stringify(subscription, null, 2));
+  console.log('🔍 Subscription created:', subscription.id);
+  console.log('🔍 Subscription data:', JSON.stringify(subscription, null, 2));
 
   if (!stripe) {
     console.error('Stripe is not properly configured');
@@ -124,20 +137,24 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
       }
     }
 
-    console.log('Metadata:', metadata);
-    console.log('Customer email:', customerEmail);
+    console.log('🔍 Metadata:', metadata);
+    console.log('🔍 Customer email:', customerEmail);
 
     // Check if subscription already exists to prevent duplicates
-    const existingSubscriptions = await getUserSubscriptionsByStripeCustomer(subscription.customer as string);
-    const alreadyExists = existingSubscriptions.some((sub) => sub.stripeSubscriptionId === subscription.id);
+    const existingSubscriptions = await getUserSubscriptionsByStripeCustomer(
+      subscription.customer as string
+    );
+    const alreadyExists = existingSubscriptions.some(
+      (sub) => sub.stripeSubscriptionId === subscription.id
+    );
 
     if (alreadyExists) {
-      console.log('Subscription already exists, skipping creation');
+      console.log('🔍 Subscription already exists, skipping creation');
       return;
     }
 
     // Additional check: look for recent subscriptions with same customer and plan
-    const recentSubscriptions = existingSubscriptions.filter(sub => {
+    const recentSubscriptions = existingSubscriptions.filter((sub) => {
       const createdAt = new Date(sub.createdAt);
       const now = new Date();
       const timeDiff = now.getTime() - createdAt.getTime();
@@ -146,13 +163,16 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     });
 
     if (recentSubscriptions.length > 0) {
-      console.log('Recent subscription found, skipping creation to prevent duplicates');
+      console.log('🔍 Recent subscription found, skipping creation to prevent duplicates');
       return;
     }
 
     // Try to get plan info from the subscription items
     const subscriptionItem = subscription.items.data[0];
     const price = subscriptionItem.price;
+
+    console.log('🔍 Price metadata:', price.metadata);
+    console.log('🔍 Price description:', price.nickname);
 
     // Extract plan name and billing cycle from price metadata or description
     let planName = metadata.planName;
@@ -184,22 +204,24 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
       }
     }
 
-    console.log('Extracted plan info:', { planName, billingCycle });
+    console.log('🔍 Extracted plan info:', { planName, billingCycle });
 
     if (planName && billingCycle && customerEmail) {
       // Get the Firebase user ID from the customer email
       const userProfile = await getUserProfileByEmail(customerEmail);
       if (!userProfile) {
-        console.error('User profile not found for email:', customerEmail);
+        console.error('🔍 User profile not found for email:', customerEmail);
         return;
       }
+
+      console.log('🔍 Found user profile:', userProfile.uid);
 
       // Calculate proper dates
       const startDate = new Date(subscription.start_date * 1000);
       const endDate = new Date(subscriptionItem.current_period_end * 1000);
 
-      console.log('Calculated dates:', { startDate, endDate });
-      console.log('Subscription item current_period_end:', subscriptionItem.current_period_end);
+      console.log('🔍 Calculated dates:', { startDate, endDate });
+      console.log('🔍 Subscription item current_period_end:', subscriptionItem.current_period_end);
 
       const subscriptionData = {
         userId: userProfile.uid, // Use Firebase user ID, not Stripe customer ID
@@ -208,26 +230,31 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
         planBillingCycle: billingCycle as 'monthly' | 'yearly',
         planPrice: subscriptionItem.price.unit_amount! / 100,
         planDescription: `Stripe subscription for ${planName} ${billingCycle}`,
-        status: (subscription.status === 'active' ? 'active' : 'pending') as 'active' | 'pending' | 'cancelled' | 'expired',
+        status: (subscription.status === 'active' ? 'active' : 'pending') as
+          | 'active'
+          | 'pending'
+          | 'cancelled'
+          | 'expired',
         startDate: startDate,
         endDate: endDate,
         stripeSubscriptionId: subscription.id,
         stripeCustomerId: subscription.customer as string,
+        hasExtraProdData: planName === 'EXTRA'
       };
 
-      console.log('Creating user subscription with data:', subscriptionData);
+      console.log('🔍 Creating user subscription with data:', subscriptionData);
 
       const subscriptionId = await createUserSubscription(subscriptionData);
-      console.log('User subscription created with ID:', subscriptionId);
+      console.log('🔍 User subscription created with ID:', subscriptionId);
     } else {
-      console.error('Missing required data for subscription creation:', {
+      console.error('🔍 Missing required data for subscription creation:', {
         planName,
         billingCycle,
         customerEmail
       });
     }
   } catch (error) {
-    console.error('Error creating user subscription:', error);
+    console.error('🔍 Error creating user subscription:', error);
   }
 }
 
@@ -237,9 +264,13 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   try {
     const subscriptionItem = subscription.items.data[0];
     await updateUserSubscription(subscription.id, {
-      status: (subscription.status === 'active' ? 'active' : 'cancelled') as 'active' | 'pending' | 'cancelled' | 'expired',
+      status: (subscription.status === 'active' ? 'active' : 'cancelled') as
+        | 'active'
+        | 'pending'
+        | 'cancelled'
+        | 'expired',
       endDate: new Date(subscriptionItem.current_period_end * 1000),
-      updatedAt: new Date(),
+      updatedAt: new Date()
     });
   } catch (error) {
     console.error('Error updating subscription:', error);
@@ -252,9 +283,9 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   try {
     await updateUserSubscription(subscription.id, {
       status: 'cancelled',
-      updatedAt: new Date(),
+      updatedAt: new Date()
     });
   } catch (error) {
     console.error('Error deleting subscription:', error);
   }
-} 
+}

@@ -1,22 +1,20 @@
 import { loadStripe } from '@stripe/stripe-js';
-import { getRuntimeConfig } from './runtime-config';
 
-// Get runtime configuration
-const config = getRuntimeConfig();
-
-// Initialize Stripe on the client side
-export const stripePromise = loadStripe(config.stripe.publishableKey);
+// Initialize Stripe on the client side with runtime configuration
+export function createStripePromise(publishableKey: string) {
+  return loadStripe(publishableKey);
+}
 
 // Function to redirect to Stripe checkout
-export async function redirectToCheckout(sessionId: string) {
-  const stripe = await stripePromise;
+export async function redirectToCheckout(sessionId: string, publishableKey: string) {
+  const stripe = await createStripePromise(publishableKey);
 
   if (!stripe) {
     throw new Error('Stripe failed to load');
   }
 
   const { error } = await stripe.redirectToCheckout({
-    sessionId,
+    sessionId
   });
 
   if (error) {
@@ -29,22 +27,24 @@ export async function createCheckoutSession({
   planName,
   billingCycle,
   customerEmail,
+  publishableKey
 }: {
   planName: string;
   billingCycle: string;
   customerEmail: string;
+  publishableKey: string;
 }) {
   try {
     const response = await fetch('/api/stripe/checkout', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         planName,
         billingCycle,
-        customerEmail,
-      }),
+        customerEmail
+      })
     });
 
     const data = await response.json();
@@ -54,9 +54,9 @@ export async function createCheckoutSession({
     }
 
     // Redirect to Stripe checkout
-    await redirectToCheckout(data.sessionId);
+    await redirectToCheckout(data.sessionId, publishableKey);
   } catch (error) {
     console.error('Checkout error:', error);
     throw error;
   }
-} 
+}

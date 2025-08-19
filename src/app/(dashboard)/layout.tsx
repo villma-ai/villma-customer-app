@@ -2,17 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { getUserProfile } from '@/lib/firestore';
+import { getUserProfile, UserProfile } from '@/lib/firestore';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { UserProfile } from '@villma/villma-ts-shared';
 
-export default function DashboardLayout({
-  children
-}: {
-  children: React.ReactNode;
-}) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { currentUser, logout } = useAuth();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -76,9 +71,7 @@ export default function DashboardLayout({
                 className="h-10 w-auto"
               />
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  Customer Area
-                </h1>
+                <h1 className="text-2xl font-bold text-gray-900">Customer Area</h1>
                 <p className="text-sm text-gray-600">
                   Welcome back, {userProfile?.firstName || currentUser?.email}
                 </p>
@@ -111,7 +104,7 @@ export default function DashboardLayout({
             <Link
               href="/subscriptions"
               className={`py-4 px-1 border-b-2 font-medium text-sm transition duration-200 ${
-                pathname === '/subscriptions'
+                pathname === '/subscriptions' || pathname.startsWith('/subscriptions/')
                   ? 'border-sky-500 text-sky-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
@@ -144,6 +137,9 @@ export default function DashboardLayout({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center text-gray-600">
             <p>&copy; 2025 Villma.ai. All rights reserved.</p>
+            <Link href="/help" className="text-xs text-sky-700 underline ml-2">
+              Help & FAQ
+            </Link>
           </div>
         </div>
       </footer>

@@ -2,9 +2,8 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { updateUserProfile } from '@/lib/firestore';
+import { updateUserProfile, UserProfile } from '@/lib/firestore';
 import { z } from 'zod';
-import { UserProfile } from '@villma/villma-ts-shared';
 
 interface ProfileFormProps {
   userProfile: UserProfile | null;
@@ -29,10 +28,7 @@ const profileSchema = z.object({
       .string()
       .min(1, 'Street address is required')
       .max(100, 'Street address must be less than 100 characters'),
-    city: z
-      .string()
-      .min(1, 'City is required')
-      .max(50, 'City must be less than 50 characters'),
+    city: z.string().min(1, 'City is required').max(50, 'City must be less than 50 characters'),
     postalCode: z
       .string()
       .min(1, 'Postal code is required')
@@ -61,10 +57,7 @@ type FormErrors = {
   };
 };
 
-export default function ProfileForm({
-  userProfile,
-  onProfileUpdate
-}: ProfileFormProps) {
+export default function ProfileForm({ userProfile, onProfileUpdate }: ProfileFormProps) {
   const { currentUser } = useAuth();
   const [formData, setFormData] = useState<ProfileFormData>({
     firstName: userProfile?.firstName || '',
@@ -114,8 +107,7 @@ export default function ProfileForm({
         const fieldErrors: FormErrors = {};
         err.errors.forEach((error) => {
           if (error.path[0] === 'address') {
-            const addressField = error
-              .path[1] as keyof ProfileFormData['address'];
+            const addressField = error.path[1] as keyof ProfileFormData['address'];
             if (!fieldErrors.address) fieldErrors.address = {};
             fieldErrors.address[addressField] = error.message;
           } else {
@@ -184,12 +176,8 @@ export default function ProfileForm({
   return (
     <div className="max-w-4xl mx-auto">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">
-          Profile Information
-        </h2>
-        <p className="text-gray-600">
-          Manage your personal and billing information
-        </p>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">Profile Information</h2>
+        <p className="text-gray-600">Manage your personal and billing information</p>
       </div>
 
       {message && (
@@ -227,10 +215,7 @@ export default function ProfileForm({
           </h3>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
-              <label
-                htmlFor="firstName"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
+              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
                 First Name *
               </label>
               <input
@@ -243,16 +228,11 @@ export default function ProfileForm({
                   errors.firstName ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
-              {errors.firstName && (
-                <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
-              )}
+              {errors.firstName && <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>}
             </div>
 
             <div>
-              <label
-                htmlFor="lastName"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
+              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
                 Last Name *
               </label>
               <input
@@ -265,16 +245,11 @@ export default function ProfileForm({
                   errors.lastName ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
-              {errors.lastName && (
-                <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
-              )}
+              {errors.lastName && <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>}
             </div>
 
             <div>
-              <label
-                htmlFor="phone"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
                 Phone Number
               </label>
               <input
@@ -287,9 +262,7 @@ export default function ProfileForm({
                   errors.phone ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
-              {errors.phone && (
-                <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
-              )}
+              {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
             </div>
           </div>
         </div>
@@ -316,10 +289,7 @@ export default function ProfileForm({
           </h3>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
-              <label
-                htmlFor="company"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
+              <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-2">
                 Company Name
               </label>
               <input
@@ -332,16 +302,11 @@ export default function ProfileForm({
                   errors.company ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
-              {errors.company && (
-                <p className="mt-1 text-sm text-red-600">{errors.company}</p>
-              )}
+              {errors.company && <p className="mt-1 text-sm text-red-600">{errors.company}</p>}
             </div>
 
             <div>
-              <label
-                htmlFor="vatNumber"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
+              <label htmlFor="vatNumber" className="block text-sm font-medium text-gray-700 mb-2">
                 VAT Number
               </label>
               <input
@@ -354,9 +319,7 @@ export default function ProfileForm({
                   errors.vatNumber ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
-              {errors.vatNumber && (
-                <p className="mt-1 text-sm text-red-600">{errors.vatNumber}</p>
-              )}
+              {errors.vatNumber && <p className="mt-1 text-sm text-red-600">{errors.vatNumber}</p>}
             </div>
           </div>
         </div>
@@ -406,9 +369,7 @@ export default function ProfileForm({
                 }`}
               />
               {errors.address?.street && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.address.street}
-                </p>
+                <p className="mt-1 text-sm text-red-600">{errors.address.street}</p>
               )}
             </div>
 
@@ -430,9 +391,7 @@ export default function ProfileForm({
                 }`}
               />
               {errors.address?.city && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.address.city}
-                </p>
+                <p className="mt-1 text-sm text-red-600">{errors.address.city}</p>
               )}
             </div>
 
@@ -450,15 +409,11 @@ export default function ProfileForm({
                 value={formData.address.postalCode}
                 onChange={handleChange}
                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition duration-200 ${
-                  errors.address?.postalCode
-                    ? 'border-red-300'
-                    : 'border-gray-300'
+                  errors.address?.postalCode ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
               {errors.address?.postalCode && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.address.postalCode}
-                </p>
+                <p className="mt-1 text-sm text-red-600">{errors.address.postalCode}</p>
               )}
             </div>
 
@@ -480,9 +435,7 @@ export default function ProfileForm({
                 }`}
               />
               {errors.address?.country && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.address.country}
-                </p>
+                <p className="mt-1 text-sm text-red-600">{errors.address.country}</p>
               )}
             </div>
           </div>

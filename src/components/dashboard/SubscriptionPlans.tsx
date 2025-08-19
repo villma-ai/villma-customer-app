@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { getSubscriptionPlans } from '@/lib/firestore';
+import { useState, useEffect, useCallback } from 'react';
+import { getSubscriptionPlans, getUserProfile, isUserProfileComplete, SubscriptionPlan } from '@/lib/firestore';
 import { createCheckoutSession } from '@/lib/stripe-client';
 import { useAuth } from '@/contexts/AuthContext';
-import { SubscriptionPlan } from '@villma/villma-ts-shared';
+import { useRuntimeConfig } from '@/hooks/useRuntimeConfig';
 
 interface SubscriptionPlansProps {
   userId: string;
@@ -16,11 +16,24 @@ export default function SubscriptionPlans({ userId }: SubscriptionPlansProps) {
   const [purchasing, setPurchasing] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [activeTab, setActiveTab] = useState<'monthly' | 'yearly'>('monthly');
+  const [profileComplete, setProfileComplete] = useState<boolean | null>(null);
   const { currentUser } = useAuth();
+  const { config: runtimeConfig } = useRuntimeConfig();
+
+  const checkProfile = useCallback(async () => {
+    if (!userId) return;
+    try {
+      const profile = await getUserProfile(userId);
+      setProfileComplete(isUserProfileComplete(profile));
+    } catch {
+      setProfileComplete(false);
+    }
+  }, [userId]);
 
   useEffect(() => {
     loadPlans();
-  }, []);
+    checkProfile();
+  }, [checkProfile]);
 
   async function loadPlans() {
     try {
@@ -34,7 +47,15 @@ export default function SubscriptionPlans({ userId }: SubscriptionPlansProps) {
   }
 
   async function handlePurchase(plan: SubscriptionPlan) {
-    if (!userId || !currentUser?.email) return;
+    if (!userId) {
+      throw new Error('User ID is required to purchase a plan');
+    }
+    if (!currentUser?.email) {
+      throw new Error('User email is required to purchase a plan');
+    }
+    if (!runtimeConfig?.stripe?.publishableKey) {
+      throw new Error('Stripe publishable key is not configured');
+    }
 
     try {
       setPurchasing(plan.id);
@@ -44,7 +65,8 @@ export default function SubscriptionPlans({ userId }: SubscriptionPlansProps) {
       await createCheckoutSession({
         planName: plan.name,
         billingCycle: plan.billingCycle,
-        customerEmail: currentUser.email
+        customerEmail: currentUser.email,
+        publishableKey: runtimeConfig.stripe.publishableKey
       });
 
       // Note: The user will be redirected to Stripe checkout
@@ -60,7 +82,7 @@ export default function SubscriptionPlans({ userId }: SubscriptionPlansProps) {
   // Filter plans by active tab
   const filteredPlans = plans.filter((plan) => plan.billingCycle === activeTab);
 
-  if (loading) {
+  if (loading || profileComplete === null) {
     return (
       <div className="text-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600 mx-auto"></div>
@@ -72,12 +94,10 @@ export default function SubscriptionPlans({ userId }: SubscriptionPlansProps) {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="text-center mb-12">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">
-          Available Subscription Plans
-        </h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">Available Subscription Plans</h2>
         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-          Choose the perfect plan for your business needs. Scale your AI-powered
-          solutions with our flexible subscription options.
+          Choose the perfect plan for your business needs. Scale your AI-powered solutions with our
+          flexible subscription options.
         </p>
       </div>
 
@@ -151,9 +171,7 @@ export default function SubscriptionPlans({ userId }: SubscriptionPlansProps) {
                     />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                  {plan.name}
-                </h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
                 <div className="text-5xl font-bold text-sky-600 mb-2">
                   €{plan.price}
                   <span className="text-lg font-normal text-gray-500">
@@ -184,20 +202,26 @@ export default function SubscriptionPlans({ userId }: SubscriptionPlansProps) {
                 ))}
               </ul>
 
-              <button
-                onClick={() => handlePurchase(plan)}
-                disabled={purchasing === plan.id}
-                className="w-full bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white py-3 px-6 rounded-lg font-semibold transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl cursor-pointer"
-              >
-                {purchasing === plan.id ? (
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    Processing...
-                  </div>
-                ) : (
-                  `Subscribe to ${plan.name}`
-                )}
-              </button>
+              {profileComplete ? (
+                <button
+                  onClick={() => handlePurchase(plan)}
+                  disabled={purchasing === plan.id}
+                  className="w-full bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white py-3 px-6 rounded-lg font-semibold transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl cursor-pointer"
+                >
+                  {purchasing === plan.id ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      Processing...
+                    </div>
+                  ) : (
+                    `Subscribe to ${plan.name}`
+                  )}
+                </button>
+              ) : (
+                <div className="w-full bg-yellow-100 text-yellow-800 border border-yellow-300 rounded-lg py-3 px-6 font-semibold text-center mt-4">
+                  Please complete all required profile fields before subscribing to a plan.
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -221,12 +245,9 @@ export default function SubscriptionPlans({ userId }: SubscriptionPlansProps) {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              No Plans Available
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Plans Available</h3>
             <p className="text-gray-500">
-              Subscription plans are not available at the moment. Please check
-              back later.
+              Subscription plans are not available at the moment. Please check back later.
             </p>
           </div>
         </div>

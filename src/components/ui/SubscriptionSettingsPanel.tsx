@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { updateUserSubscription, generateApiToken } from '@/lib/firestore';
-import { UserSubscription } from '@villma/villma-ts-shared';
+import { UserSubscription } from '@/lib/firestore';
 
 const ECOMMERCE_TYPES = [
   { value: 'custom', label: 'Custom' },
@@ -28,8 +28,8 @@ export default function SubscriptionSettingsPanel({
   const [ecommerceType, setEcommerceType] = useState('');
   const [apiBaseUrl, setApiBaseUrl] = useState('');
   const [customApiKey, setCustomApiKey] = useState('');
-  const [shopDomain, setShopDomain] = useState('');
-  const [adminApiToken, setAdminApiToken] = useState('');
+  const [shopifyClientId, setShopifyClientId] = useState('');
+  const [shopifyClientSecret, setShopifyClientSecret] = useState('');
   const [storeUrl, setStoreUrl] = useState('');
   const [consumerKey, setConsumerKey] = useState('');
   const [consumerSecret, setConsumerSecret] = useState('');
@@ -42,8 +42,8 @@ export default function SubscriptionSettingsPanel({
       setEcommerceType(subscription.ecommerceType || '');
       setApiBaseUrl(subscription.apiBaseUrl || '');
       setCustomApiKey(subscription.apiKey || '');
-      setShopDomain(subscription.shopDomain || '');
-      setAdminApiToken(subscription.adminApiToken || '');
+      setShopifyClientId(subscription.shopifyClientId || '');
+      setShopifyClientSecret(subscription.shopifyClientSecret || '');
       setStoreUrl(subscription.storeUrl || '');
       setConsumerKey(subscription.consumerKey || '');
       setConsumerSecret(subscription.consumerSecret || '');
@@ -86,21 +86,17 @@ export default function SubscriptionSettingsPanel({
     }
     if (ecommerceType === 'custom') {
       if (!apiBaseUrl || !customApiKey) {
-        setError(
-          'API Base URL and API Key are required for Custom integration.'
-        );
+        setError('API Base URL and API Key are required for Custom integration.');
         return;
       }
     } else if (ecommerceType === 'shopify') {
-      if (!shopDomain || !adminApiToken) {
-        setError('Shop Domain and Admin API Token are required for Shopify.');
+      if (!webshopUrl || !shopifyClientId || !shopifyClientSecret) {
+        setError('Webshop URL, Client ID, and Client Secret are required for Shopify.');
         return;
       }
     } else if (ecommerceType === 'woocommerce') {
       if (!storeUrl || !consumerKey || !consumerSecret) {
-        setError(
-          'Store URL, Consumer Key, and Consumer Secret are required for WooCommerce.'
-        );
+        setError('Store URL, Consumer Key, and Consumer Secret are required for WooCommerce.');
         return;
       }
     } else if (ecommerceType === 'prestashop') {
@@ -115,15 +111,14 @@ export default function SubscriptionSettingsPanel({
       const updates: Partial<UserSubscription> = {
         webshopUrl: webshopUrl || undefined,
         apiToken: apiToken || undefined,
-        ecommerceType:
-          (ecommerceType as UserSubscription['ecommerceType']) || undefined
+        ecommerceType: (ecommerceType as UserSubscription['ecommerceType']) || undefined
       };
       if (ecommerceType === 'custom') {
         updates.apiBaseUrl = apiBaseUrl;
         updates.apiKey = customApiKey;
       } else if (ecommerceType === 'shopify') {
-        updates.shopDomain = shopDomain;
-        updates.adminApiToken = adminApiToken;
+        updates.shopifyClientId = shopifyClientId;
+        updates.shopifyClientSecret = shopifyClientSecret;
       } else if (ecommerceType === 'woocommerce') {
         updates.storeUrl = storeUrl;
         updates.consumerKey = consumerKey;
@@ -146,19 +141,12 @@ export default function SubscriptionSettingsPanel({
   return (
     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-100 my-6 mx-auto">
       <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">
-          Subscription Settings
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900">Subscription Settings</h3>
         <button
           onClick={onClose}
           className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
         >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -175,19 +163,16 @@ export default function SubscriptionSettingsPanel({
           </div>
         )}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Ecommerce Type */}
+          {/* Ecommerce Type (first column) */}
           <div>
-            <label
-              htmlFor="ecommerceType"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
+            <label htmlFor="ecommerceType" className="block text-sm font-medium text-gray-700 mb-2">
               Ecommerce Platform
             </label>
             <select
               id="ecommerceType"
               value={ecommerceType}
               onChange={(e) => setEcommerceType(e.target.value)}
-              className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
+              className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm text-gray-900"
               required
             >
               <option value="">Select platform</option>
@@ -197,6 +182,23 @@ export default function SubscriptionSettingsPanel({
                 </option>
               ))}
             </select>
+          </div>
+          {/* Webshop URL (second and third columns) */}
+          <div className="md:col-span-2">
+            <label htmlFor="webshopUrl" className="block text-sm font-medium text-gray-700 mb-2">
+              Webshop URL
+            </label>
+            <input
+              type="url"
+              id="webshopUrl"
+              value={webshopUrl}
+              onChange={(e) => setWebshopUrl(e.target.value)}
+              placeholder="https://your-webshop.com"
+              className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm text-gray-900"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Enter the URL where your chatbot will be installed
+            </p>
           </div>
           {/* Dynamic Fields */}
           {ecommerceType === 'custom' && (
@@ -214,7 +216,7 @@ export default function SubscriptionSettingsPanel({
                   value={apiBaseUrl}
                   onChange={(e) => setApiBaseUrl(e.target.value)}
                   placeholder="https://api.yourshop.com"
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm text-gray-900"
                   required
                 />
               </div>
@@ -231,7 +233,7 @@ export default function SubscriptionSettingsPanel({
                   value={customApiKey}
                   onChange={(e) => setCustomApiKey(e.target.value)}
                   placeholder="Your API Key"
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm text-gray-900"
                   required
                 />
               </div>
@@ -240,36 +242,33 @@ export default function SubscriptionSettingsPanel({
           {ecommerceType === 'shopify' && (
             <>
               <div>
-                <label
-                  htmlFor="shopDomain"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Shop Domain
+                <label htmlFor="shopifyClientId" className="block text-sm font-medium text-gray-700 mb-2">
+                  Client ID
                 </label>
                 <input
                   type="text"
-                  id="shopDomain"
-                  value={shopDomain}
-                  onChange={(e) => setShopDomain(e.target.value)}
-                  placeholder="yourstore.myshopify.com"
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
+                  id="shopifyClientId"
+                  value={shopifyClientId}
+                  onChange={(e) => setShopifyClientId(e.target.value)}
+                  placeholder="Your Shopify app client ID"
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm text-gray-900"
                   required
                 />
               </div>
               <div>
                 <label
-                  htmlFor="adminApiToken"
+                  htmlFor="shopifyClientSecret"
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
-                  Admin API Token
+                  Client Secret
                 </label>
                 <input
-                  type="text"
-                  id="adminApiToken"
-                  value={adminApiToken}
-                  onChange={(e) => setAdminApiToken(e.target.value)}
-                  placeholder="Shopify Admin API Token"
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
+                  type="password"
+                  id="shopifyClientSecret"
+                  value={shopifyClientSecret}
+                  onChange={(e) => setShopifyClientSecret(e.target.value)}
+                  placeholder="Your Shopify app client secret"
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm text-gray-900"
                   required
                 />
               </div>
@@ -278,10 +277,7 @@ export default function SubscriptionSettingsPanel({
           {ecommerceType === 'woocommerce' && (
             <>
               <div>
-                <label
-                  htmlFor="storeUrl"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
+                <label htmlFor="storeUrl" className="block text-sm font-medium text-gray-700 mb-2">
                   Store URL
                 </label>
                 <input
@@ -290,7 +286,7 @@ export default function SubscriptionSettingsPanel({
                   value={storeUrl}
                   onChange={(e) => setStoreUrl(e.target.value)}
                   placeholder="https://yourstore.com"
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm text-gray-900"
                   required
                 />
               </div>
@@ -307,7 +303,7 @@ export default function SubscriptionSettingsPanel({
                   value={consumerKey}
                   onChange={(e) => setConsumerKey(e.target.value)}
                   placeholder="WooCommerce Consumer Key"
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm text-gray-900"
                   required
                 />
               </div>
@@ -324,7 +320,7 @@ export default function SubscriptionSettingsPanel({
                   value={consumerSecret}
                   onChange={(e) => setConsumerSecret(e.target.value)}
                   placeholder="WooCommerce Consumer Secret"
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm text-gray-900"
                   required
                 />
               </div>
@@ -333,10 +329,7 @@ export default function SubscriptionSettingsPanel({
           {ecommerceType === 'prestashop' && (
             <>
               <div>
-                <label
-                  htmlFor="storeUrl"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
+                <label htmlFor="storeUrl" className="block text-sm font-medium text-gray-700 mb-2">
                   Store URL
                 </label>
                 <input
@@ -345,7 +338,7 @@ export default function SubscriptionSettingsPanel({
                   value={storeUrl}
                   onChange={(e) => setStoreUrl(e.target.value)}
                   placeholder="https://yourstore.com"
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm text-gray-900"
                   required
                 />
               </div>
@@ -362,38 +355,15 @@ export default function SubscriptionSettingsPanel({
                   value={prestaApiKey}
                   onChange={(e) => setPrestaApiKey(e.target.value)}
                   placeholder="PrestaShop API Key"
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm text-gray-900"
                   required
                 />
               </div>
             </>
           )}
-          {/* Webshop URL */}
-          <div>
-            <label
-              htmlFor="webshopUrl"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Webshop URL
-            </label>
-            <input
-              type="url"
-              id="webshopUrl"
-              value={webshopUrl}
-              onChange={(e) => setWebshopUrl(e.target.value)}
-              placeholder="https://your-webshop.com"
-              className="w-full px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Enter the URL where your chatbot will be installed (optional)
-            </p>
-          </div>
           {/* API Token */}
           <div className="col-span-1 md:col-span-2 lg:col-span-3">
-            <label
-              htmlFor="apiToken"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
+            <label htmlFor="apiToken" className="block text-sm font-medium text-gray-700 mb-2">
               API Token
             </label>
             <div className="space-y-2">
@@ -404,7 +374,7 @@ export default function SubscriptionSettingsPanel({
                   value={apiToken}
                   onChange={(e) => setApiToken(e.target.value)}
                   placeholder="Generate a token"
-                  className="flex-1 px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm font-mono"
+                  className="flex-1 px-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-sm font-mono Enhanced Products"
                   readOnly
                 />
                 <button

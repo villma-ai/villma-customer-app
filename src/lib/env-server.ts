@@ -21,7 +21,7 @@ const serverEnvVars: ServerEnvVar[] = [
     required: true,
     description: 'Stripe webhook secret for webhook verification'
   },
-  
+
   // Stripe Product/Price IDs (Server-side only)
   {
     name: 'STRIPE_BASE_MONTHLY_PRICE_ID',
@@ -47,7 +47,11 @@ const serverEnvVars: ServerEnvVar[] = [
 
 export function validateServerEnvironmentVariables(): void {
   // Skip validation during build time or when not in a request context
-  if (process.env.NODE_ENV === 'production' && typeof window === 'undefined' && !process.env.NEXT_RUNTIME) {
+  if (
+    process.env.NODE_ENV === 'production' &&
+    typeof window === 'undefined' &&
+    !process.env.NEXT_RUNTIME
+  ) {
     console.log('⚠️  Skipping environment validation during build (no runtime variables set)');
     return;
   }
@@ -57,7 +61,7 @@ export function validateServerEnvironmentVariables(): void {
 
   for (const envVar of serverEnvVars) {
     const value = process.env[envVar.name];
-    
+
     if (envVar.required) {
       if (value === undefined) {
         missingVars.push(envVar);
@@ -70,24 +74,26 @@ export function validateServerEnvironmentVariables(): void {
   if (missingVars.length > 0 || emptyVars.length > 0) {
     console.error('❌ Server environment variable validation failed!');
     console.error('');
-    
+
     if (missingVars.length > 0) {
       console.error('Missing required server environment variables:');
-      missingVars.forEach(envVar => {
+      missingVars.forEach((envVar) => {
         console.error(`  - ${envVar.name}: ${envVar.description}`);
       });
       console.error('');
     }
-    
+
     if (emptyVars.length > 0) {
       console.error('Empty required server environment variables:');
-      emptyVars.forEach(envVar => {
+      emptyVars.forEach((envVar) => {
         console.error(`  - ${envVar.name}: ${envVar.description}`);
       });
       console.error('');
     }
-    
-    console.error('Please set all required server environment variables in your deployment environment.');
+
+    console.error(
+      'Please set all required server environment variables in your deployment environment.'
+    );
     console.error('');
     console.error('Required server environment variables:');
     console.error('```');
@@ -101,12 +107,14 @@ export function validateServerEnvironmentVariables(): void {
     console.error('STRIPE_EXTRA_MONTHLY_PRICE_ID=price_...');
     console.error('STRIPE_EXTRA_YEARLY_PRICE_ID=price_...');
     console.error('```');
-    
-    throw new Error('Server environment variables validation failed. Please check the console output above.');
+
+    throw new Error(
+      'Server environment variables validation failed. Please check the console output above.'
+    );
   } else {
     console.log('✅ All required server environment variables are set correctly!');
   }
 }
 
 // Export the list of server env vars for reference
-export { serverEnvVars }; 
+export { serverEnvVars };

@@ -14,9 +14,9 @@ function isStripeConfigured(): boolean {
 }
 
 // Initialize Stripe only if properly configured
-export const stripe = isStripeConfigured() 
+export const stripe = isStripeConfigured()
   ? new Stripe(config.stripe.secretKey, {
-      apiVersion: '2025-05-28.basil',
+      apiVersion: '2025-05-28.basil'
     })
   : null;
 
@@ -24,7 +24,7 @@ export const stripe = isStripeConfigured()
 export const STRIPE_CONFIG = {
   publishableKey: config.stripe.publishableKey,
   secretKey: config.stripe.secretKey,
-  webhookSecret: config.stripe.webhookSecret,
+  webhookSecret: config.stripe.webhookSecret
 };
 
 // Product and price IDs for your subscription plans
@@ -32,12 +32,22 @@ export const STRIPE_PRODUCTS = {
   BASE_MONTHLY: config.stripe.products.baseMonthly,
   BASE_YEARLY: config.stripe.products.baseYearly,
   EXTRA_MONTHLY: config.stripe.products.extraMonthly,
-  EXTRA_YEARLY: config.stripe.products.extraYearly,
+  EXTRA_YEARLY: config.stripe.products.extraYearly
 };
+
+// Debug logging for Stripe configuration
+console.log('🔍 Stripe configuration:', {
+  isConfigured: isStripeConfigured(),
+  products: STRIPE_PRODUCTS,
+  publishableKey: config.stripe.publishableKey ? 'Set' : 'Not set',
+  secretKey: config.stripe.secretKey ? 'Set' : 'Not set',
+  webhookSecret: config.stripe.webhookSecret ? 'Set' : 'Not set'
+});
 
 // Helper function to get Stripe price ID based on plan
 export function getStripePriceId(planName: string, billingCycle: string): string {
-  const key = `${planName.toUpperCase()}_${billingCycle.toUpperCase()}` as keyof typeof STRIPE_PRODUCTS;
+  const key =
+    `${planName.toUpperCase()}_${billingCycle.toUpperCase()}` as keyof typeof STRIPE_PRODUCTS;
   return STRIPE_PRODUCTS[key];
 }
 
@@ -59,25 +69,36 @@ export async function createCheckoutSession({
     throw new Error('Stripe is not properly configured. Please check your environment variables.');
   }
 
+  console.log('🔍 Creating checkout session with:', {
+    priceId,
+    customerEmail,
+    successUrl,
+    cancelUrl,
+    metadata
+  });
+
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
     payment_method_types: ['card'],
     line_items: [
       {
         price: priceId,
-        quantity: 1,
-      },
+        quantity: 1
+      }
     ],
     customer_email: customerEmail,
     success_url: successUrl,
     cancel_url: cancelUrl,
     metadata,
     subscription_data: {
-      metadata,
+      metadata
     },
     allow_promotion_codes: true,
-    billing_address_collection: 'required',
+    billing_address_collection: 'required'
   });
+
+  console.log('🔍 Checkout session created:', session.id);
+  console.log('🔍 Session metadata:', session.metadata);
 
   return session;
 }
@@ -90,8 +111,8 @@ export async function createCustomerPortalSession(customerId: string, returnUrl:
 
   const session = await stripe.billingPortal.sessions.create({
     customer: customerId,
-    return_url: returnUrl,
+    return_url: returnUrl
   });
 
   return session;
-} 
+}
