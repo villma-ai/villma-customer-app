@@ -207,19 +207,7 @@ The app now uses **runtime environment variables** instead of build-time variabl
 
 #### Required Environment Variables
 
-**Firebase Configuration (Client-side):**
-
-```bash
-NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789
-NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abcdef
-NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX  # Optional
-```
-
-**Firestore Database Configuration (Optional):**
+**Firestore Database Configuration:**
 
 ```bash
 # Database name within the Firebase project (defaults to 'default' if not set)
@@ -268,12 +256,12 @@ docker build -t villma-customer-app .
 
 # Run with environment variables
 docker run -p 3000:3000 \
-  -e NEXT_PUBLIC_FIREBASE_API_KEY=your_key \
-  -e NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_domain \
-  -e NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project \
-  -e NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_bucket \
-  -e NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789 \
-  -e NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abcdef \
+  -e FIREBASE_API_KEY=your_key \
+  -e FIREBASE_AUTH_DOMAIN=your_domain \
+  -e FIREBASE_PROJECT_ID=your_project \
+  -e FIREBASE_STORAGE_BUCKET=your_bucket \
+  -e FIREBASE_MESSAGING_SENDER_ID=123456789 \
+  -e FIREBASE_APP_ID=1:123456789:web:abcdef \
   -e STRIPE_PUBLISHABLE_KEY=pk_test_... \
   -e STRIPE_SECRET_KEY=sk_test_... \
   -e STRIPE_WEBHOOK_SECRET=whsec_... \
