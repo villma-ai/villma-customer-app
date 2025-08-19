@@ -173,7 +173,7 @@ jobs:
         run: |
           terraform plan \
             -var-file=environments/dev/terraform.tfvars \
-            -target=module.customer_app.google_cloud_run_service.customer_app \
+            -target=module.customer_app.google_cloud_run_service.this \
             -out=tfplan
         env:
           TF_VAR_customer_app_version: ${{ needs.build-and-push.outputs.version }}
@@ -191,7 +191,7 @@ jobs:
 
       - name: Terraform Apply
         working-directory: terraform
-        run: terraform apply -var-file=environments/dev/terraform.tfvars -target=module.customer_app.google_cloud_run_service.customer_app -auto-approve
+        run: terraform apply -var-file=environments/dev/terraform.tfvars -target=module.customer_app.google_cloud_run_service.this -auto-approve
         env:
           TF_VAR_customer_app_version: ${{ needs.build-and-push.outputs.version }}
 
@@ -244,7 +244,7 @@ jobs:
         run: |
           terraform plan \
             -var-file=environments/prd/terraform.tfvars \
-            -target=module.customer_app.google_cloud_run_service.customer_app \
+            -target=module.customer_app.google_cloud_run_service.this \
             -out=tfplan
         env:
           TF_VAR_customer_app_version: ${{ needs.build-and-push.outputs.version }}
@@ -262,6 +262,6 @@ jobs:
 
       - name: Terraform Apply
         working-directory: terraform
-        run: terraform apply -var-file=environments/prd/terraform.tfvars -target=module.customer_app.google_cloud_run_service.customer_app -auto-approve
+        run: terraform apply -var-file=environments/prd/terraform.tfvars -target=module.customer_app.google_cloud_run_service.this -auto-approve
         env:
           TF_VAR_customer_app_version: ${{ needs.build-and-push.outputs.version }}
